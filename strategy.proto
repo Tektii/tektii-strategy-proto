@@ -1,0 +1,255 @@
+syntax = "proto3";
+
+package backtest.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// StrategyService defines the interface for communication between
+// the backtest engine and strategy containers.
+service StrategyService {
+  // ProcessEvent sends a single event to the strategy and waits for a response.
+  // This is the primary method for the "event-and-wait" pattern.
+  // Returns an ActionResponse with actions the strategy wants to take based on the event.
+  rpc ProcessEvent(Event) returns (ActionResponse) {}
+  
+  // HealthCheck allows the backtest engine to verify the strategy container
+  // is responsive and ready to process events.
+  // Returns a HealthCheckResponse indicating the strategy's health status.
+  rpc HealthCheck(google.protobuf.Empty) returns (HealthCheckResponse) {}
+}
+
+// Event represents a single event in the backtest simulation.
+message Event {
+  // Unique identifier for this event
+  string event_id = 1;
+  
+  // When this event occurred in simulation time
+  google.protobuf.Timestamp timestamp = 2;
+  
+  // The type of event
+  EventType event_type = 3;
+  
+  // Event-specific data - only one of these fields will be set
+  // depending on the event_type
+  oneof event_data {
+    CandleDataEvent candle_data = 4;
+    OrderExecutionEvent order_execution = 5;
+  }
+
+  // Optional debug information from the backtest engine
+  optional string debug_info = 6;
+}
+
+// EventType enumerates all possible event types in the backtest system
+enum EventType {
+  // Default value when no event type is specified
+  EVENT_TYPE_UNSPECIFIED = 0;
+  
+  // Represents market data events (candles, trades, etc.)
+  EVENT_TYPE_MARKET_DATA = 1;
+  
+  // Represents order execution events
+  EVENT_TYPE_ORDER_EXECUTION = 2;
+}
+
+// MarketDataEvent represents various types of market data from exchanges
+message CandleDataEvent {  
+  // Instrument identifier (e.g., "BTC-USD")
+  uint32 instrument_id = 1;
+
+  // Candle time period
+  uint32 timeframe_id = 2;
+  
+  // The exchange or venue providing this data (e.g., "BINANCE", "NYSE")
+  string exchange = 3;
+  
+  // The actual market data
+  CandleData candle = 4;
+}
+
+
+// CandleData represents OHLCV (Open, High, Low, Close, Volume) data for a time period
+message CandleData {
+  // Start time of this candle period
+  google.protobuf.Timestamp timestamp = 1;
+
+  // OHLCV values
+  string open = 2;
+  string high = 3;
+  string low = 4;
+  string close = 5;
+  int32 volume = 6;
+}
+
+// OrderExecutionEvent represents an order being executed
+message OrderExecutionEvent {
+  // Unique identifier for this order
+  string order_id = 1;
+
+  // Trading instrument instrument (e.g., "BTC-USD")
+  uint32 instrument_id = 2;
+
+  // Buy or sell Direction
+  Direction direction = 3;
+
+  // Execution price
+  double price = 4;
+
+  // Execution quantity
+  double quantity = 5;
+
+  // When the order was executed
+  google.protobuf.Timestamp executed_at = 6;
+
+  // Type of the original order that was executed
+  OrderType order_type = 7;
+}
+
+// Direction represents buy/sell Direction
+enum Direction {
+  // Default value when no order Direction is specified
+  Direction_UNSPECIFIED = 0;
+  
+  // Buy order
+  Direction_BUY = 1;
+  
+  // Sell order
+  Direction_SELL = 2;
+}
+
+// OrderType represents the type of order
+enum OrderType {
+  // Default value when no order type is specified
+  ORDER_TYPE_UNSPECIFIED = 0;
+  
+  // Limit order - execute at specified price or better
+  ORDER_TYPE_LIMIT = 1;
+  
+  // Stop order - becomes market order when price reaches stop level
+  ORDER_TYPE_STOP = 2;
+  
+  // Take profit order - limit order to close position at profit
+  ORDER_TYPE_TAKE_PROFIT = 3;
+  
+  // Stop loss order - limit order to close position to prevent further loss
+  ORDER_TYPE_STOP_LOSS = 4;
+
+  // Market order - execute at current market price
+  ORDER_TYPE_MARKET = 5;
+
+  // Market close order - execute at current market price
+  ORDER_TYPE_MARKET_CLOSE = 6;
+  
+  // Reserved for future order types
+  reserved 7 to 10;
+}
+
+
+// ActionResponse represents the strategy's response to an event
+message ActionResponse {
+  // Unique identifier matching the event this is responding to
+  string event_id = 1;
+  
+  // Actions the strategy wishes to take
+  repeated Action actions = 2;
+  
+  // Optional debug information from the strategy
+  string debug_info = 3;
+}
+
+// Action represents a single action the strategy wishes to take
+message Action {
+  // Unique identifier for this action
+  string action_id = 1;
+  
+  // Type of action
+  ActionType action_type = 2;
+  
+  // Action-specific data
+  oneof action_data {
+    PlaceOrderAction place_order = 3;
+    CancelOrderAction cancel_order = 4;
+    // Future action types can be added here
+  }
+}
+
+// ActionType enumerates types of actions a strategy can take
+enum ActionType {
+  // Default value when no action type is specified
+  ACTION_TYPE_UNSPECIFIED = 0;
+  
+  // Place a new order
+  ACTION_TYPE_PLACE_ORDER = 1;
+  
+  // Cancel an existing order
+  ACTION_TYPE_CANCEL_ORDER = 2;
+  
+  // Reserved for future action types
+  reserved 3 to 10;
+}
+
+// PlaceOrderAction represents placing a new order
+message PlaceOrderAction {
+  // Instrument to trade (e.g., "BTC-USD")
+  uint32 instrument_id = 1;
+  
+  // Buy or sell Direction
+  Direction direction = 2;
+  
+  // Type of order to place
+  OrderType order_type = 3;
+  
+  // Order quantity
+  int32 quantity = 4;
+  
+  // Order price
+  double price = 5;
+  
+  // Optional stop loss price level
+  optional double stop_loss = 6;
+  
+  // Optional take profit price level
+  optional double take_profit = 7;
+  
+  // Optional target trade ID this order is related to
+  optional string target_trade_id = 8;
+  
+}
+
+// CancelOrderAction represents canceling an existing order
+message CancelOrderAction {
+  // ID of the order to cancel
+  string order_id = 1;
+}
+
+
+// HealthCheckResponse indicates the status of the strategy
+message HealthCheckResponse {
+  // Current health status
+  HealthStatus status = 1;
+
+  // Optional human-readable message providing more details
+  string message = 2;
+
+   // Additional details about the health status
+  map<string, string> details = 3;
+}
+
+// HealthStatus indicates the health of the strategy
+enum HealthStatus {
+  // Default value when status is not known
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  
+  // Strategy is healthy and ready to serve requests
+  HEALTH_STATUS_SERVING = 1;
+  
+  // Strategy is unhealthy and not ready to serve requests
+  HEALTH_STATUS_NOT_SERVING = 2;
+  
+  // Health status could not be determined
+  HEALTH_STATUS_UNKNOWN = 3;
+  
+  // Reserved for future status values
+  reserved 4 to 10;
+}

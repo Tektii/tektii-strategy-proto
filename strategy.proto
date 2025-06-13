@@ -5,16 +5,10 @@ package backtest.v1;
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
-// StrategyService defines the interface for communication between
-// the backtest engine and strategy containers.
 service StrategyService {
-  // ProcessEvent sends a single event to the strategy and waits for a response.
-  // This is the primary method for the "event-and-wait" pattern.
   // Returns an ActionResponse with actions the strategy wants to take based on the event.
   rpc ProcessEvent(Event) returns (ActionResponse) {}
   
-  // HealthCheck allows the backtest engine to verify the strategy container
-  // is responsive and ready to process events.
   // Returns a HealthCheckResponse indicating the strategy's health status.
   rpc HealthCheck(google.protobuf.Empty) returns (HealthCheckResponse) {}
 }

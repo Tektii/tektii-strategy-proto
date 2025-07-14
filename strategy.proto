@@ -3,14 +3,10 @@ syntax = "proto3";
 package backtest.v1;
 
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
 
 service StrategyService {
   // Returns an ActionResponse with actions the strategy wants to take based on the event.
   rpc ProcessEvent(Event) returns (ActionResponse) {}
-  
-  // Returns a HealthCheckResponse indicating the strategy's health status.
-  rpc HealthCheck(google.protobuf.Empty) returns (HealthCheckResponse) {}
 }
 
 // Event represents a single event in the backtest simulation.
@@ -215,35 +211,4 @@ message PlaceOrderAction {
 message CancelOrderAction {
   // ID of the order to cancel
   string order_id = 1;
-}
-
-
-// HealthCheckResponse indicates the status of the strategy
-message HealthCheckResponse {
-  // Current health status
-  HealthStatus status = 1;
-
-  // Optional human-readable message providing more details
-  string message = 2;
-
-   // Additional details about the health status
-  map<string, string> details = 3;
-}
-
-// HealthStatus indicates the health of the strategy
-enum HealthStatus {
-  // Default value when status is not known
-  HEALTH_STATUS_UNSPECIFIED = 0;
-  
-  // Strategy is healthy and ready to serve requests
-  HEALTH_STATUS_SERVING = 1;
-  
-  // Strategy is unhealthy and not ready to serve requests
-  HEALTH_STATUS_NOT_SERVING = 2;
-  
-  // Health status could not be determined
-  HEALTH_STATUS_UNKNOWN = 3;
-  
-  // Reserved for future status values
-  reserved 4 to 10;
 }

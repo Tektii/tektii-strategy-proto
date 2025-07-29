@@ -45,7 +45,7 @@ enum EventType {
 
 // MarketDataEvent represents various types of market data from exchanges
 message CandleDataEvent {  
-  // Instrument identifier (e.g., "BTC-USD")
+  // Instrument id
   uint32 instrument_id = 1;
 
   // Candle time period
@@ -77,7 +77,7 @@ message OrderExecutionEvent {
   // Unique identifier for this order
   string order_id = 1;
 
-  // Trading instrument instrument (e.g., "BTC-USD")
+  // Trading instrument id
   uint32 instrument_id = 2;
 
   // Buy or sell Direction
@@ -181,7 +181,7 @@ enum ActionType {
 
 // PlaceOrderAction represents placing a new order
 message PlaceOrderAction {
-  // Instrument to trade (e.g., "BTC-USD")
+  // Instrument to trade
   uint32 instrument_id = 1;
   
   // Buy or sell Direction

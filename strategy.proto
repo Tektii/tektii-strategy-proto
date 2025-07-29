@@ -24,11 +24,7 @@ message Event {
   // depending on the event_type
   oneof event_data {
     CandleDataEvent candle_data = 4;
-    OrderExecutionEvent order_execution = 5;
   }
-
-  // Optional debug information from the backtest engine
-  optional string debug_info = 6;
 }
 
 // EventType enumerates all possible event types in the backtest system
@@ -36,11 +32,8 @@ enum EventType {
   // Default value when no event type is specified
   EVENT_TYPE_UNSPECIFIED = 0;
   
-  // Represents market data events (candles, trades, etc.)
-  EVENT_TYPE_MARKET_DATA = 1;
-  
-  // Represents order execution events
-  EVENT_TYPE_ORDER_EXECUTION = 2;
+  // Represents candle data events
+  EVENT_TYPE_CANDLE_DATA = 1;
 }
 
 // MarketDataEvent represents various types of market data from exchanges
@@ -70,30 +63,6 @@ message CandleData {
   string low = 4;
   string close = 5;
   int32 volume = 6;
-}
-
-// OrderExecutionEvent represents an order being executed
-message OrderExecutionEvent {
-  // Unique identifier for this order
-  string order_id = 1;
-
-  // Trading instrument id
-  uint32 instrument_id = 2;
-
-  // Buy or sell Direction
-  Direction direction = 3;
-
-  // Execution price
-  double price = 4;
-
-  // Execution quantity
-  double quantity = 5;
-
-  // When the order was executed
-  google.protobuf.Timestamp executed_at = 6;
-
-  // Type of the original order that was executed
-  OrderType order_type = 7;
 }
 
 // Direction represents buy/sell Direction
@@ -202,7 +171,7 @@ message PlaceOrderAction {
   // Optional take profit price level
   optional double take_profit = 7;
   
-  // Optional target trade ID this order is related to
+  // Optional target trade ID this order is related to (used in stop loss/take profit)
   optional string target_trade_id = 8;
   
 }

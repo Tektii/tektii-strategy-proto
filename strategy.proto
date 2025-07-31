@@ -39,45 +39,92 @@ message TektiiEvent {
 
     // The actual event - only one will be set
     oneof event {
-        MarketDataEvent market_data = 10;
-        OrderUpdateEvent order_update = 11;
-        PositionUpdateEvent position_update = 12;
-        AccountUpdateEvent account_update = 13;
-        TradeEvent trade = 14;
-        SystemEvent system = 15;
+        TickData tick_data = 10;
+        BarData bar_data = 11;
+        OptionGreeks option_greeks = 12;
+        OrderUpdateEvent order_update = 13;
+        PositionUpdateEvent position_update = 14;
+        AccountUpdateEvent account_update = 15;
+        TradeEvent trade = 16;
+        SystemEvent system = 17;
     }
 }
 
-// Market data update event
-message MarketDataEvent {
+// High-frequency tick data (quotes and trades)
+message TickData {
     string symbol = 1;
-
-    // Price information
+    
+    // Quote data
     double bid = 2;
     double ask = 3;
-    double last = 4;
-    double mid = 5;
+    int64 bid_size = 4;
+    int64 ask_size = 5;
+    
+    // Trade data
+    double last = 6;
+    int64 last_size = 7;
+    
+    // Derived
+    double mid = 8;  // (bid + ask) / 2
+    
+    // Metadata
+    string exchange = 9;
+    enum TickType {
+        TICK_TYPE_UNKNOWN = 0;
+        TICK_TYPE_QUOTE = 1;
+        TICK_TYPE_TRADE = 2;
+        TICK_TYPE_QUOTE_AND_TRADE = 3;
+    }
+    TickType tick_type = 10;
+}
 
-    // Volume information
-    int64 bid_size = 6;
-    int64 ask_size = 7;
-    int64 last_size = 8;
-    int64 volume = 9;
+// Aggregated OHLCV bar data
+message BarData {
+    string symbol = 1;
+    
+    // OHLCV
+    double open = 2;
+    double high = 3;
+    double low = 4;
+    double close = 5;
+    int64 volume = 6;
+    
+    // Additional aggregates
+    double vwap = 7;
+    int64 trade_count = 8;
+    
+    // Bar metadata
+    enum BarType {
+        BAR_TYPE_UNKNOWN = 0;
+        BAR_TYPE_TIME = 1;     // 1min, 5min, etc.
+        BAR_TYPE_TICK = 2;     // Every N ticks
+        BAR_TYPE_VOLUME = 3;   // Every N shares
+        BAR_TYPE_DOLLAR = 4;   // Every $N traded
+    }
+    BarType bar_type = 9;
+    int32 bar_size = 10;  // e.g., 1 for 1min, 5 for 5min
+    string bar_size_unit = 11;  // e.g., "min", "hour", "day"
+}
 
-    // Additional market information
-    double high = 10;
-    double low = 11;
-    double open = 12;
-    double close = 13;
-    double vwap = 14;
-
-    // Options-specific data (optional)
-    double implied_volatility = 20;
-    double delta = 21;
-    double gamma = 22;
-    double theta = 23;
-    double vega = 24;
-    double rho = 25;
+// Options Greeks and derivatives analytics
+message OptionGreeks {
+    string symbol = 1;
+    
+    // Greeks
+    double delta = 2;
+    double gamma = 3;
+    double theta = 4;
+    double vega = 5;
+    double rho = 6;
+    
+    // Additional option metrics
+    double implied_volatility = 7;
+    double theoretical_value = 8;
+    
+    // Context (important for Greeks interpretation)
+    double underlying_price = 9;
+    double interest_rate = 10;
+    int32 days_to_expiry = 11;
 }
 
 // Order update event

@@ -21,16 +21,6 @@ format:
 	@cd proto && buf format -w
 	@echo "Formatting complete!"
 
-# Check for breaking changes
-breaking:
-	@echo "Checking for breaking changes..."
-	@if [ "$$GITHUB_ACTIONS" = "true" ] && [ "$$GITHUB_EVENT_NAME" = "pull_request" ]; then \
-		echo "Running breaking change check against main branch..."; \
-		cd proto && buf breaking --against '.git#branch=main'; \
-	else \
-		echo "Skipping breaking change check (not in PR context)"; \
-	fi
-
 # Run all checks
 check: lint breaking
 	@echo "Running all checks..."

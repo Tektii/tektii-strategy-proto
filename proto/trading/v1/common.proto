@@ -2,12 +2,10 @@ syntax = "proto3";
 
 package trading.v1;
 
-option go_package = "github.com/your-org/trading-interface-proto/gen/go/trading/v1;tradingv1";
+option go_package = "github.com/Tektii/tektii-strategy-proto/gen/go/trading/v1;tradingv1";
 option java_multiple_files = true;
-option java_package = "com.yourorg.trading.v1";
+option java_package = "com.tektii.trading.v1";
 option optimize_for = SPEED;
-
-// No imports needed for common types
 
 // Common enums used across the trading interface
 

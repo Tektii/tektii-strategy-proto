@@ -12,24 +12,24 @@ install:
 # Lint proto files
 lint:
 	@echo "Running buf lint..."
-	@buf lint
+	@cd proto && buf lint
 	@echo "Linting complete!"
 
 # Format proto files
 format:
 	@echo "Formatting proto files..."
-	@buf format -w
+	@cd proto && buf format -w
 	@echo "Formatting complete!"
 
 # Check for breaking changes
 breaking:
 	@echo "Checking for breaking changes..."
-	@buf breaking --against '.git#branch=main' || echo "No breaking changes detected (or no git history)"
+	@cd proto && buf breaking --against '.git#branch=main' || echo "No breaking changes detected (or no git history)"
 
 # Run all checks
 check: lint
 	@echo "Running all checks..."
-	@buf build
+	@cd proto && buf build
 	@echo "All checks passed!"
 
 # Clean temporary files
@@ -46,7 +46,7 @@ show-structure:
 # Validate proto compilation
 validate:
 	@echo "Validating proto files..."
-	@buf build
+	@cd proto && buf build
 	@echo "Proto files are valid!"
 
 # Help target

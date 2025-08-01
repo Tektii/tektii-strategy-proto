@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package trading.v1;
 
-option go_package = "github.com/your-org/trading-interface-proto/gen/go/trading/v1;tradingv1";
+option go_package = "github.com/Tektii/tektii-strategy-proto/gen/go/trading/v1;tradingv1";
 option java_multiple_files = true;
-option java_package = "com.yourorg.trading.v1";
+option java_package = "com.tektii.trading.v1";
 option optimize_for = SPEED;
 
 import "google/protobuf/wrappers.proto";
@@ -12,35 +12,10 @@ import "validate/validate.proto";
 import "trading/v1/common.proto";
 import "trading/v1/market_data.proto";
 
-// TradingService provides a generic trading interface for strategies.
-// This service is implemented by trading strategies and called by provider adapters.
-// It supports both event-driven market data processing and synchronous order management.
-service TradingService {
-    // Event Processing - strategies handle internally, no actions returned
-    rpc ProcessEvent(TradingEvent) returns (ProcessEventResponse);
 
-    // Lifecycle Management
-    rpc Initialize(InitRequest) returns (InitResponse);
-    rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
-
-    // Query Methods - pull-based data access
-    rpc GetState(StateRequest) returns (StateResponse);
-    rpc GetHistoricalData(HistoricalDataRequest) returns (HistoricalDataResponse);
-    rpc GetMarketDepth(MarketDepthRequest) returns (MarketDepthResponse);
-    rpc GetRiskMetrics(RiskMetricsRequest) returns (RiskMetricsResponse);
-
-    // Order Management - synchronous with immediate feedback
-    rpc PlaceOrder(PlaceOrderRequest) returns (PlaceOrderResponse);
-    rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
-    rpc ModifyOrder(ModifyOrderRequest) returns (ModifyOrderResponse);
-    rpc ValidateOrder(ValidateOrderRequest) returns (ValidateOrderResponse);
-    rpc ClosePosition(ClosePositionRequest) returns (ClosePositionResponse);
-    rpc ModifyTradeProtection(ModifyTradeProtectionRequest) returns (ModifyTradeProtectionResponse);
-}
-
-// TradingEvent is the base event wrapper containing all possible event types.
+// TektiiEvent is the base event wrapper containing all possible event types.
 // Only one event type will be set per message to ensure type safety.
-message TradingEvent {
+message TektiiEvent {
     // Unique event ID for tracking
     string event_id = 1 [(validate.rules).string.min_len = 1];
 

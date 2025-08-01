@@ -1,4 +1,4 @@
-# Trading Interface Protocol
+# Tektii Strategy Protocol
 
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 [![Buf](https://img.shields.io/badge/Buf-Schema%20Registry-blueviolet)](https://buf.build)
@@ -83,7 +83,7 @@ from concurrent import futures
 import grpc
 from trading.v1 import orders_pb2_grpc, orders_pb2, common_pb2
 
-class MyTradingStrategy(orders_pb2_grpc.TradingServiceServicer):
+class MyTradingStrategy(orders_pb2_grpc.TektiiStrategyServicer):
     def Initialize(self, request, context):
         # Initialize your strategy
         return orders_pb2.InitResponse(success=True)
@@ -101,7 +101,7 @@ class MyTradingStrategy(orders_pb2_grpc.TradingServiceServicer):
 
 # Start the gRPC server
 server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-orders_pb2_grpc.add_TradingServiceServicer_to_server(MyTradingStrategy(), server)
+orders_pb2_grpc.add_TektiiStrategyServicer_to_server(MyTradingStrategy(), server)
 server.add_insecure_port('[::]:50051')
 server.start()
 ```
@@ -113,12 +113,12 @@ package main
 
 import (
     "context"
-    pb "github.com/your-org/trading-interface-proto/gen/go/trading/v1"
+    pb "github.com/Tektii/tektii-strategy-proto/gen/go/trading/v1"
     "google.golang.org/grpc"
 )
 
 type MyTradingStrategy struct {
-    pb.UnimplementedTradingServiceServer
+    pb.UnimplementedTektiiStrategyServer
 }
 
 func (s *MyTradingStrategy) Initialize(ctx context.Context, req *pb.InitRequest) (*pb.InitResponse, error) {
@@ -126,14 +126,14 @@ func (s *MyTradingStrategy) Initialize(ctx context.Context, req *pb.InitRequest)
     return &pb.InitResponse{Success: true}, nil
 }
 
-func (s *MyTradingStrategy) ProcessEvent(ctx context.Context, req *pb.TradingEvent) (*pb.ProcessEventResponse, error) {
+func (s *MyTradingStrategy) ProcessEvent(ctx context.Context, req *pb.TektiiEvent) (*pb.ProcessEventResponse, error) {
     // Handle market data events
     return &pb.ProcessEventResponse{Success: true}, nil
 }
 
 func main() {
     server := grpc.NewServer()
-    pb.RegisterTradingServiceServer(server, &MyTradingStrategy{})
+    pb.RegisterTektiiStrategyServer(server, &MyTradingStrategy{})
     // Start server...
 }
 ```
@@ -142,7 +142,7 @@ func main() {
 
 ### Service Definition
 
-The main service `TradingService` provides:
+The main service `TektiiStrategy` provides:
 
 - **Event Processing**: Handle market data and trading events
 - **Order Management**: Place, cancel, and modify orders with immediate feedback
@@ -192,32 +192,40 @@ Adapters are available or planned for:
 ### Project Structure
 
 ```
-trading-interface-proto/
+tektii-strategy-proto/
 ├── proto/
 │   └── trading/
 │       └── v1/
-│           ├── orders.proto      # Order management and main service
+│           ├── service.proto     # TektiiStrategy service definition
+│           ├── orders.proto      # Order management and event messages
 │           ├── market_data.proto # Market data messages
 │           └── common.proto      # Shared types and enums
 ├── gen/                          # Generated code (git ignored)
 ├── examples/                     # Example implementations
 ├── docs/                         # Documentation
-├── buf.yaml                      # Buf configuration
-├── buf.gen.yaml                  # Code generation configuration
+├── Makefile                      # Build commands for linting and checks
 └── README.md
+
+Note: The buf.yaml configuration is located in the proto/ directory.
 ```
 
 ### Building
 
 ```bash
+# Run all checks (lint + build)
+make check
+
 # Lint proto files
-buf lint
+make lint
+
+# Format proto files
+make format
 
 # Detect breaking changes
-buf breaking --against '.git#branch=main'
+make breaking
 
-# Generate code
-buf generate
+# Generate code (from proto directory)
+cd proto && buf generate
 ```
 
 ### Testing
@@ -250,8 +258,8 @@ This project is licensed under the Tektii Platform Interface License - see the [
 
 - **Documentation**: [Full Documentation](docs/)
 - **Examples**: [Example Implementations](examples/)
-- **Issues**: [GitHub Issues](https://github.com/your-org/trading-interface-proto/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/trading-interface-proto/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Tektii/tektii-strategy-proto/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Tektii/tektii-strategy-proto/discussions)
 
 ## Acknowledgments
 

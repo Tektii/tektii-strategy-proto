@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package trading.v1;
+
+option go_package = "github.com/Tektii/tektii-strategy-proto/gen/go/trading/v1;tradingv1";
+option java_multiple_files = true;
+option java_package = "com.tektii.trading.v1";
+option optimize_for = SPEED;
+
+import "trading/v1/market_data.proto";
+import "trading/v1/orders.proto";
+
+// TektiiStrategy provides a generic trading interface for strategies.
+// This service is implemented by trading strategies and called by provider adapters.
+// It supports both event-driven market data processing and synchronous order management.
+service TektiiStrategy {
+    // Event Processing - strategies handle internally, no actions returned
+    rpc ProcessEvent(TektiiEvent) returns (ProcessEventResponse);
+
+    // Lifecycle Management
+    rpc Initialize(InitRequest) returns (InitResponse);
+    rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
+
+    // Query Methods - pull-based data access
+    rpc GetState(StateRequest) returns (StateResponse);
+    rpc GetHistoricalData(HistoricalDataRequest) returns (HistoricalDataResponse);
+    rpc GetMarketDepth(MarketDepthRequest) returns (MarketDepthResponse);
+    rpc GetRiskMetrics(RiskMetricsRequest) returns (RiskMetricsResponse);
+
+    // Order Management - synchronous with immediate feedback
+    rpc PlaceOrder(PlaceOrderRequest) returns (PlaceOrderResponse);
+    rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
+    rpc ModifyOrder(ModifyOrderRequest) returns (ModifyOrderResponse);
+    rpc ValidateOrder(ValidateOrderRequest) returns (ValidateOrderResponse);
+    rpc ClosePosition(ClosePositionRequest) returns (ClosePositionResponse);
+    rpc ModifyTradeProtection(ModifyTradeProtectionRequest) returns (ModifyTradeProtectionResponse);
+}

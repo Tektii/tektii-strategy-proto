@@ -1,0 +1,43 @@
+name: Proto Quality Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for breaking change detection
+    
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+    
+    - name: Install dependencies
+      run: |
+        # Install buf
+        curl -sSL https://github.com/bufbuild/buf/releases/latest/download/buf-Linux-x86_64 -o buf
+        chmod +x buf
+        sudo mv buf /usr/local/bin/
+        
+        # Install protolint
+        go install github.com/yoheimuta/protolint/cmd/protolint@latest
+    
+    - name: Run all checks
+      run: make check
+    
+    # - name: Upload to buf.build registry (on main)
+    #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    #   env:
+    #     BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+    #   run: |
+    #     # Only run if BUF_TOKEN is set
+    #     if [ -n "$BUF_TOKEN" ]; then
+    #       buf push
+    #     fi

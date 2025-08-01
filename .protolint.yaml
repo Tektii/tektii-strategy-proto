@@ -1,0 +1,24 @@
+lint:
+  rules:
+    no_default: true
+    add:
+      - ENUM_FIELD_NAMES_UPPER_SNAKE_CASE
+      - ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
+      - ENUM_NAMES_UPPER_CAMEL_CASE
+      - FIELD_NAMES_LOWER_SNAKE_CASE
+      - MESSAGE_NAMES_UPPER_CAMEL_CASE
+      - PROTO3_FIELDS_AVOID_REQUIRED
+      - PROTO3_GROUPS_AVOID
+      - REPEATED_FIELD_NAMES_PLURALIZED
+      - RPC_NAMES_UPPER_CAMEL_CASE
+      - SERVICE_NAMES_UPPER_CAMEL_CASE
+      - SERVICES_HAVE_COMMENT
+      - SYNTAX_CONSISTENT
+      - FILE_NAMES_LOWER_SNAKE_CASE
+      - QUOTE_CONSISTENT
+      
+  rules_option:
+    enum_field_names_zero_value_end_with:
+      suffix: _UNKNOWN
+    max_line_length:
+      max_chars: 120

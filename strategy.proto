@@ -1,10 +1,18 @@
 syntax = "proto3";
 
-package tektii.strategy;
+package tektii.strategy.v1;
+
+option go_package = "github.com/tektii/tektii-strategy-proto/gen/go;strategyv1";
+option java_multiple_files = true;
+option java_package = "com.tektii.strategy.v1";
+option optimize_for = SPEED;
 
 import "google/protobuf/wrappers.proto";
+import "validate/validate.proto";
 
-// TektiiStrategy service - implemented by trading strategies
+// TektiiStrategy service provides a generic trading interface for strategies.
+// This service is implemented by trading strategies and called by provider adapters.
+// It supports both event-driven market data processing and synchronous order management.
 service TektiiStrategy {
     // Process an event - strategies handle internally, no actions returned
     rpc ProcessEvent(TektiiEvent) returns (ProcessEventResponse);
@@ -48,15 +56,19 @@ service TektiiStrategy {
     rpc ModifyTradeProtection(ModifyTradeProtectionRequest) returns (ModifyTradeProtectionResponse);
 }
 
-// Base event wrapper that contains all possible event types
+// TektiiEvent is the base event wrapper that contains all possible event types.
+// Only one event type will be set per message to ensure type safety.
 message TektiiEvent {
     // Unique event ID for tracking
-    string event_id = 1;
+    string event_id = 1 [(validate.rules).string.min_len = 1];
 
     // Timestamp in microseconds since epoch
-    int64 timestamp_us = 2;
+    int64 timestamp_us = 2 [(validate.rules).int64.gt = 0];
 
-    // The actual event - only one will be set
+    // Event payload - exactly one field will be set per message.
+    // Field numbers 10-99 are reserved for market data events.
+    // Field numbers 100-199 are reserved for trading events.
+    // Field numbers 200-299 are reserved for system events.
     oneof event {
         TickData tick_data = 10;
         BarData bar_data = 11;
@@ -69,7 +81,8 @@ message TektiiEvent {
     }
 }
 
-// High-frequency tick data (quotes and trades)
+// TickData represents high-frequency quote and trade data.
+// Used for strategies that require tick-level market data processing.
 message TickData {
     string symbol = 1;
     
@@ -88,6 +101,7 @@ message TickData {
     
     // Metadata
     string exchange = 9;
+    // TickType indicates whether this tick contains quote data, trade data, or both.
     enum TickType {
         TICK_TYPE_UNKNOWN = 0;
         TICK_TYPE_QUOTE = 1;
@@ -113,12 +127,13 @@ message BarData {
     int64 trade_count = 8;
     
     // Bar metadata
+    // BarType indicates how the bar was aggregated.
     enum BarType {
         BAR_TYPE_UNKNOWN = 0;
-        BAR_TYPE_TIME = 1;     // 1min, 5min, etc.
-        BAR_TYPE_TICK = 2;     // Every N ticks
-        BAR_TYPE_VOLUME = 3;   // Every N shares
-        BAR_TYPE_DOLLAR = 4;   // Every $N traded
+        BAR_TYPE_TIME = 1;     // Time-based bars (1min, 5min, etc.)
+        BAR_TYPE_TICK = 2;     // Tick count based (every N ticks)
+        BAR_TYPE_VOLUME = 3;   // Volume based (every N shares)
+        BAR_TYPE_DOLLAR = 4;   // Dollar value based (every $N traded)
     }
     BarType bar_type = 9;
     int32 bar_size = 10;  // e.g., 1 for 1min, 5 for 5min
@@ -248,23 +263,28 @@ message ProcessEventResponse {
 }
 
 // Lifecycle messages
+
+// InitRequest contains configuration and setup parameters for strategy initialization.
 message InitRequest {
     map<string, string> config = 1;
     repeated string symbols = 2;
     string strategy_id = 3;
 }
 
+// InitResponse indicates whether strategy initialization was successful.
 message InitResponse {
     bool success = 1;
     string message = 2;
     map<string, string> capabilities = 3;
 }
 
+// ShutdownRequest initiates graceful shutdown of the strategy.
 message ShutdownRequest {
     string reason = 1;
     bool force = 2;
 }
 
+// ShutdownResponse confirms strategy shutdown completion.
 message ShutdownResponse {
     bool success = 1;
     string message = 2;
@@ -339,15 +359,17 @@ message AccountState {
 
 // Historical data request
 message HistoricalDataRequest {
-    string symbol = 1;
-    int64 start_timestamp_us = 2;
-    int64 end_timestamp_us = 3;
+    string symbol = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
+    int64 start_timestamp_us = 2 [(validate.rules).int64.gt = 0];
+    int64 end_timestamp_us = 3 [(validate.rules).int64.gt = 0];
     
     // Bar size: 1min, 5min, 15min, 30min, 1hour, 4hour, 1day
-    string bar_size = 4;
+    string bar_size = 4 [(validate.rules).string = {
+        in: ["1min", "5min", "15min", "30min", "1hour", "4hour", "1day"]
+    }];
     
     // Max number of bars to return
-    int32 limit = 5;
+    int32 limit = 5 [(validate.rules).int32 = {gte: 1, lte: 10000}];
 }
 
 // Historical data response
@@ -506,14 +528,14 @@ message ProtectiveOrdersOnFill {
 
 // Place order request - with synchronous confirmation
 message PlaceOrderRequest {
-    string symbol = 1;
-    OrderSide side = 2;
-    OrderType order_type = 3;
-    double quantity = 4;
+    string symbol = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
+    OrderSide side = 2 [(validate.rules).enum.defined_only = true];
+    OrderType order_type = 3 [(validate.rules).enum.defined_only = true];
+    double quantity = 4 [(validate.rules).double.gt = 0];
 
     // Prices (depending on order type)
-    double limit_price = 5;
-    double stop_price = 6;
+    double limit_price = 5 [(validate.rules).double.gte = 0];
+    double stop_price = 6 [(validate.rules).double.gte = 0];
 
     // Time in force
     TimeInForce time_in_force = 7;
@@ -793,3 +815,7 @@ message ModifyTradeProtectionResponse {
     
     int64 timestamp_us = 13;
 }
+
+// Reserved field numbers for future use
+// Reserved 1000-1999 for experimental features
+// Reserved 2000-2999 for provider-specific extensions

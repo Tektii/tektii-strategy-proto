@@ -1,0 +1,29 @@
+# Generated files
+gen/
+*.pb.go
+*.pb.gw.go
+*_grpc.pb.go
+*.swagger.json
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.o
+*.a
+*.so
+*.dll
+*.dylib
+
+# Temporary files
+*.tmp
+*.temp
+*.log

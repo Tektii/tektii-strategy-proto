@@ -62,7 +62,6 @@ The protocol defines two complementary gRPC services:
 1. **TektiiStrategy** (implemented by your strategy):
    - Receives market events and trading updates
    - Handles initialization and shutdown
-   - Processes events internally without returning trading actions
 
 2. **TektiiBroker** (implemented by provider adapters):
    - Handles order management (place, cancel, modify)

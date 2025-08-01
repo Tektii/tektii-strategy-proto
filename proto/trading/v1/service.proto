@@ -14,6 +14,8 @@ option optimize_for = SPEED;
 // This service is implemented by trading strategies and called by provider adapters.
 // It supports both event-driven market data processing and synchronous order management.
 service TektiiStrategy {
+  // Event Processing - strategies handle internally, no actions returned
+  rpc ProcessEvent(TektiiEvent) returns (ProcessEventResponse);
 
   // Lifecycle Management
   rpc Initialize(InitRequest) returns (InitResponse);

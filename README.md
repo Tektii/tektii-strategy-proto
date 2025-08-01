@@ -1,9 +1,9 @@
 # Trading Interface Protocol
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 [![Buf](https://img.shields.io/badge/Buf-Schema%20Registry-blueviolet)](https://buf.build)
 
-A generic, provider-agnostic trading interface defined in Protocol Buffers. This interface enables trading strategies to be written once and work seamlessly across multiple brokers, exchanges, and trading platforms.
+The official Protocol Buffer interface definitions for the Tektii algorithmic trading platform. This interface enables trading strategies to integrate with Tektii's infrastructure and supported brokers/exchanges.
 
 ## Table of Contents
 
@@ -242,7 +242,9 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Tektii Platform Interface License - see the [LICENSE](LICENSE) file for details.
+
+**Important**: This software is restricted to use with the Tektii platform only. See license for full terms.
 
 ## Support
 

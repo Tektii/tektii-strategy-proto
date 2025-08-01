@@ -1,21 +1,40 @@
-MIT License
+Tektii Platform Interface License
 
-Copyright (c) 2024 Your Organization
+Copyright (c) 2024 Tektii, Inc. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+NOTICE: This repository contains the interface definitions for the Tektii
+algorithmic trading platform. While the source code is publicly viewable for
+transparency and to facilitate integration, its use is restricted.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+PERMITTED USE:
+Permission is hereby granted, free of charge, to any person or organization
+obtaining a copy of this software and associated documentation files (the
+"Software"), to use the Software SOLELY for the purpose of:
 
+1. Developing trading strategies that interface with the Tektii platform
+2. Creating provider adapters for use within the Tektii ecosystem
+3. Integrating with Tektii's services as an authorized user or partner
+
+RESTRICTIONS:
+The Software may NOT be used to:
+
+1. Create competing trading platforms or services
+2. Interface with non-Tektii trading systems or brokers
+3. Develop standalone trading applications independent of Tektii
+4. Reverse engineer or replicate Tektii's platform functionality
+
+ADDITIONAL TERMS:
+- Any use of this Software constitutes acceptance of Tektii's Terms of Service
+- Tektii reserves the right to modify or revoke access to this interface
+- Commercial use requires a separate agreement with Tektii, Inc.
+
+DISCLAIMER:
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+TEKTII, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+For questions about licensing or commercial use, contact: legal@tektii.com

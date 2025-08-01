@@ -7,17 +7,15 @@ on:
     branches: [ main ]
 
 jobs:
-  check:
+  lint:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Full history for breaking change detection
     
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.21'
+        go-version: '1.24'
     
     - name: Install dependencies
       run: |
@@ -29,11 +27,29 @@ jobs:
         # Install protolint
         go install github.com/yoheimuta/protolint/cmd/protolint@latest
     
+    - name: Update buf dependencies
+      run: cd proto && buf dep update
+    
     - name: Run all checks
       run: make check
     
-    - name: Upload to buf.build registry (on main)
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  publish:
+    runs-on: ubuntu-latest
+    needs: lint
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install buf
+      run: |
+        curl -sSL https://github.com/bufbuild/buf/releases/latest/download/buf-Linux-x86_64 -o buf
+        chmod +x buf
+        sudo mv buf /usr/local/bin/
+    
+    - name: Update buf dependencies
+      run: cd proto && buf dep update
+    
+    - name: Upload to buf.build registry
       env:
         BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
       run: |

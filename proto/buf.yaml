@@ -1,7 +1,7 @@
 version: v2
 modules:
   - path: .
-    name: buf.build/tektii/tektii-strategy-proto
+    name: buf.build/tektii/strategy
 deps:
   - buf.build/envoyproxy/protoc-gen-validate:v1.0.4
 breaking:

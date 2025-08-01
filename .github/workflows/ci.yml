@@ -1,4 +1,4 @@
-name: Proto Quality Check
+name: Proto Quality & Registry Publish
 
 on:
   push:
@@ -32,12 +32,12 @@ jobs:
     - name: Run all checks
       run: make check
     
-    # - name: Upload to buf.build registry (on main)
-    #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    #   env:
-    #     BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
-    #   run: |
-    #     # Only run if BUF_TOKEN is set
-    #     if [ -n "$BUF_TOKEN" ]; then
-    #       buf push
-    #     fi
+    - name: Upload to buf.build registry (on main)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      env:
+        BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+      run: |
+        # Only run if BUF_TOKEN is set
+        if [ -n "$BUF_TOKEN" ]; then
+          cd proto && buf push
+        fi

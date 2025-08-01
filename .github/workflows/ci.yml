@@ -1,4 +1,4 @@
-name: Proto Quality & Registry Publish
+name: Proto Quality & Breaking Change Checks
 
 on:
   pull_request:
@@ -47,4 +47,4 @@ jobs:
     - name: Check for breaking changes
       run: |
         echo "Checking for breaking changes against main branch..."
-        cd proto && buf breaking --against '.git#branch=main'
+        cd proto && buf breaking --against '../.git#branch=main'

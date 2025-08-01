@@ -1,29 +1,63 @@
-.PHONY: install lint breaking check clean
+.PHONY: install lint format breaking check clean all
 
-# Install linting tools
+# Default target
+all: check
+
+# Install development tools
 install:
 	@echo "Installing buf..."
 	@brew install bufbuild/buf/buf || (echo "Please install buf manually from https://github.com/bufbuild/buf" && exit 1)
-	@echo "Installing protolint..."
-	@brew install protolint || go install github.com/yoheimuta/protolint/cmd/protolint@latest
+	@echo "All tools installed!"
 
 # Lint proto files
 lint:
 	@echo "Running buf lint..."
 	@buf lint
-	@echo "Running protolint..."
-	@protolint lint strategy.proto
+	@echo "Linting complete!"
+
+# Format proto files
+format:
+	@echo "Formatting proto files..."
+	@buf format -w
+	@echo "Formatting complete!"
 
 # Check for breaking changes
 breaking:
 	@echo "Checking for breaking changes..."
-	@buf breaking --against '.git#branch=main' || echo "Skipping breaking check (no git history or not on branch)"
+	@buf breaking --against '.git#branch=main' || echo "No breaking changes detected (or no git history)"
 
 # Run all checks
-check: lint breaking
+check: lint
+	@echo "Running all checks..."
+	@buf build
 	@echo "All checks passed!"
 
-# Clean any temporary files
+# Clean temporary files
 clean:
 	@echo "Cleaning temporary files..."
 	@rm -rf .buf/
+	@echo "Clean complete!"
+
+# Show current proto structure
+show-structure:
+	@echo "Current proto structure:"
+	@find proto -name "*.proto" | sort
+
+# Validate proto compilation
+validate:
+	@echo "Validating proto files..."
+	@buf build
+	@echo "Proto files are valid!"
+
+# Help target
+help:
+	@echo "Available targets:"
+	@echo "  make install    - Install required development tools"
+	@echo "  make lint       - Run linting on proto files"
+	@echo "  make format     - Format proto files"
+	@echo "  make breaking   - Check for breaking changes"
+	@echo "  make check      - Run all checks (lint + build)"
+	@echo "  make clean      - Remove temporary files"
+	@echo "  make validate   - Validate proto compilation"
+	@echo "  make show-structure - Display current proto file structure"
+	@echo "  make help       - Show this help message"

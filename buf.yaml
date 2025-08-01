@@ -1,7 +1,9 @@
-version: v1
-name: buf.build/tektii/strategy-proto
+version: v2
+modules:
+  - path: proto
+    name: buf.build/your-org/trading-interface-proto
 deps:
-  - buf.build/envoyproxy/protoc-gen-validate
+  - buf.build/envoyproxy/protoc-gen-validate:v1.0.4
 breaking:
   use:
     - FILE
@@ -11,9 +13,9 @@ lint:
   except:
     - ENUM_VALUE_PREFIX
     - SERVICE_SUFFIX
-    - PACKAGE_DIRECTORY_MATCH
     - RPC_REQUEST_STANDARD_NAME
     - RPC_RESPONSE_STANDARD_NAME
+    - RPC_REQUEST_RESPONSE_UNIQUE
   enum_zero_value_suffix: _UNKNOWN
   rpc_allow_same_request_response: false
   rpc_allow_google_protobuf_empty_requests: false

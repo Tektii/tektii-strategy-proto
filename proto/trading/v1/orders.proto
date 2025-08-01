@@ -1,0 +1,350 @@
+syntax = "proto3";
+
+package trading.v1;
+
+option go_package = "github.com/your-org/trading-interface-proto/gen/go/trading/v1;tradingv1";
+option java_multiple_files = true;
+option java_package = "com.yourorg.trading.v1";
+option optimize_for = SPEED;
+
+import "google/protobuf/wrappers.proto";
+import "validate/validate.proto";
+import "trading/v1/common.proto";
+import "trading/v1/market_data.proto";
+
+// TradingService provides a generic trading interface for strategies.
+// This service is implemented by trading strategies and called by provider adapters.
+// It supports both event-driven market data processing and synchronous order management.
+service TradingService {
+    // Event Processing - strategies handle internally, no actions returned
+    rpc ProcessEvent(TradingEvent) returns (ProcessEventResponse);
+
+    // Lifecycle Management
+    rpc Initialize(InitRequest) returns (InitResponse);
+    rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
+
+    // Query Methods - pull-based data access
+    rpc GetState(StateRequest) returns (StateResponse);
+    rpc GetHistoricalData(HistoricalDataRequest) returns (HistoricalDataResponse);
+    rpc GetMarketDepth(MarketDepthRequest) returns (MarketDepthResponse);
+    rpc GetRiskMetrics(RiskMetricsRequest) returns (RiskMetricsResponse);
+
+    // Order Management - synchronous with immediate feedback
+    rpc PlaceOrder(PlaceOrderRequest) returns (PlaceOrderResponse);
+    rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
+    rpc ModifyOrder(ModifyOrderRequest) returns (ModifyOrderResponse);
+    rpc ValidateOrder(ValidateOrderRequest) returns (ValidateOrderResponse);
+    rpc ClosePosition(ClosePositionRequest) returns (ClosePositionResponse);
+    rpc ModifyTradeProtection(ModifyTradeProtectionRequest) returns (ModifyTradeProtectionResponse);
+}
+
+// TradingEvent is the base event wrapper containing all possible event types.
+// Only one event type will be set per message to ensure type safety.
+message TradingEvent {
+    // Unique event ID for tracking
+    string event_id = 1 [(validate.rules).string.min_len = 1];
+
+    // Timestamp in microseconds since epoch
+    int64 timestamp_us = 2 [(validate.rules).int64.gt = 0];
+
+    // Event payload - exactly one field will be set per message
+    oneof event {
+        // Market data events (10-99)
+        TickData tick_data = 10;
+        BarData bar_data = 11;
+        OptionGreeks option_greeks = 12;
+        
+        // Trading events (100-199)
+        OrderUpdateEvent order_update = 100;
+        PositionUpdateEvent position_update = 101;
+        AccountUpdateEvent account_update = 102;
+        TradeEvent trade = 103;
+        
+        // System events (200-299)
+        SystemEvent system = 200;
+    }
+}
+
+// ProcessEventResponse acknowledges event processing.
+message ProcessEventResponse {
+    bool success = 1;
+    string error = 2;
+    map<string, string> metadata = 3;
+}
+
+// Lifecycle Messages
+
+// InitRequest contains strategy initialization parameters.
+message InitRequest {
+    map<string, string> config = 1;      // Strategy configuration
+    repeated string symbols = 2;         // Symbols to trade
+    string strategy_id = 3;              // Unique strategy identifier
+}
+
+// InitResponse confirms strategy initialization.
+message InitResponse {
+    bool success = 1;
+    string message = 2;
+    map<string, string> capabilities = 3; // Strategy capabilities
+}
+
+// ShutdownRequest initiates graceful shutdown.
+message ShutdownRequest {
+    string reason = 1;
+    bool force = 2;  // Force immediate shutdown
+}
+
+// ShutdownResponse confirms shutdown completion.
+message ShutdownResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+// Query Messages
+
+// StateRequest queries current strategy state.
+message StateRequest {
+    repeated string symbols = 1;  // Empty = all symbols
+    bool include_positions = 2;
+    bool include_orders = 3;
+    bool include_account = 4;
+}
+
+// StateResponse returns current state snapshot.
+message StateResponse {
+    map<string, Position> positions = 1;   // By symbol
+    map<string, Order> orders = 2;         // By order_id
+    AccountState account = 3;
+    int64 timestamp_us = 4;
+}
+
+// RiskMetricsRequest queries portfolio risk metrics.
+message RiskMetricsRequest {
+    repeated string symbols = 1;     // Empty = all positions
+    double confidence_level = 2;     // e.g., 0.95 for 95% VaR
+    int32 lookback_days = 3;         // Historical period
+}
+
+// RiskMetricsResponse returns risk calculations.
+message RiskMetricsResponse {
+    // Portfolio-level metrics
+    double portfolio_var = 1;        // Value at Risk
+    double portfolio_sharpe = 2;     // Sharpe ratio
+    double portfolio_beta = 3;       // Beta vs market
+    double max_drawdown = 4;         // Maximum drawdown
+    
+    // Position-level metrics
+    map<string, PositionRisk> position_risks = 5;
+    
+    // Correlation matrix (symbol pairs as keys)
+    map<string, double> correlations = 6;
+    
+    int64 timestamp_us = 7;
+}
+
+// Order Management Messages
+
+// PlaceOrderRequest submits a new order.
+message PlaceOrderRequest {
+    string symbol = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
+    OrderSide side = 2 [(validate.rules).enum.defined_only = true];
+    OrderType order_type = 3 [(validate.rules).enum.defined_only = true];
+    double quantity = 4 [(validate.rules).double.gt = 0];
+
+    // Prices (required based on order type)
+    double limit_price = 5 [(validate.rules).double.gte = 0];
+    double stop_price = 6 [(validate.rules).double.gte = 0];
+
+    // Order parameters
+    TimeInForce time_in_force = 7;
+    string client_order_id = 8;      // Client-assigned ID
+    map<string, string> metadata = 9;
+
+    // Order intent and relationships
+    OrderIntent order_intent = 10;
+    string parent_trade_id = 11;     // For protective orders
+    
+    // Automatic protective orders on fill
+    ProtectiveOrdersOnFill protective_orders_on_fill = 12;
+
+    // Request tracking
+    string request_id = 20;          // Correlation ID
+    bool validate_only = 21;         // Dry run validation
+}
+
+// PlaceOrderResponse provides immediate order feedback.
+message PlaceOrderResponse {
+    bool accepted = 1;
+    string order_id = 2;             // Provider-assigned ID
+    string request_id = 3;           // Echo correlation ID
+    
+    // Rejection details
+    string reject_reason = 4;
+    RejectCode reject_code = 5;
+    
+    // Risk check results
+    RiskCheckResult risk_check = 6;
+    
+    // Estimates
+    double estimated_fill_price = 7;
+    double estimated_commission = 8;
+    
+    int64 timestamp_us = 9;
+}
+
+// CancelOrderRequest cancels an existing order.
+message CancelOrderRequest {
+    string order_id = 1 [(validate.rules).string.min_len = 1];
+    string request_id = 2;
+}
+
+// CancelOrderResponse confirms cancellation.
+message CancelOrderResponse {
+    bool accepted = 1;
+    string order_id = 2;
+    string request_id = 3;
+    
+    string reject_reason = 4;
+    RejectCode reject_code = 5;
+    
+    // State at cancellation
+    OrderStatus previous_status = 6;
+    double filled_quantity = 7;
+    
+    int64 timestamp_us = 8;
+}
+
+// ModifyOrderRequest changes order parameters.
+message ModifyOrderRequest {
+    string order_id = 1 [(validate.rules).string.min_len = 1];
+
+    // Fields to modify (only set what changes)
+    google.protobuf.DoubleValue quantity = 2;
+    google.protobuf.DoubleValue limit_price = 3;
+    google.protobuf.DoubleValue stop_price = 4;
+    
+    string request_id = 5;
+}
+
+// ModifyOrderResponse confirms modification.
+message ModifyOrderResponse {
+    bool accepted = 1;
+    string order_id = 2;
+    string request_id = 3;
+    
+    string reject_reason = 4;
+    RejectCode reject_code = 5;
+    
+    RiskCheckResult risk_check = 6;
+    
+    int64 timestamp_us = 7;
+}
+
+// ValidateOrderRequest performs pre-trade validation.
+message ValidateOrderRequest {
+    string symbol = 1;
+    OrderSide side = 2;
+    OrderType order_type = 3;
+    double quantity = 4;
+    double limit_price = 5;
+    double stop_price = 6;
+    
+    string request_id = 7;
+}
+
+// ValidateOrderResponse returns validation results.
+message ValidateOrderResponse {
+    bool valid = 1;
+    string request_id = 2;
+    
+    repeated ValidationError errors = 3;
+    repeated ValidationWarning warnings = 4;
+    
+    RiskCheckResult risk_check = 5;
+    
+    // Market impact estimates
+    double estimated_fill_price = 6;
+    double estimated_market_impact = 7;
+}
+
+// ClosePositionRequest closes a position.
+message ClosePositionRequest {
+    string symbol = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
+    double quantity = 2;  // 0 = close entire position
+    
+    // Order routing preferences
+    OrderType order_type = 3;  // Default MARKET
+    double limit_price = 4;    // For LIMIT orders
+    
+    string request_id = 5;
+}
+
+// ClosePositionResponse confirms position closure.
+message ClosePositionResponse {
+    bool accepted = 1;
+    string request_id = 2;
+    
+    // Created order IDs
+    repeated string order_ids = 3;
+    
+    // Position details
+    double position_quantity = 4;
+    double closing_quantity = 5;
+    double remaining_quantity = 6;
+    
+    string reject_reason = 7;
+    RejectCode reject_code = 8;
+    
+    int64 timestamp_us = 9;
+}
+
+// ModifyTradeProtectionRequest manages stop loss and take profit.
+message ModifyTradeProtectionRequest {
+    string trade_id = 1 [(validate.rules).string.min_len = 1];
+    
+    // Stop loss modifications
+    message StopLossModification {
+        oneof modification {
+            StopOrder stop = 1;
+            StopLimitOrder stop_limit = 2;
+            bool remove = 3;  // Remove stop loss
+        }
+    }
+    StopLossModification stop_loss = 2;
+    
+    // Take profit modifications
+    message TakeProfitModification {
+        oneof modification {
+            double limit_price = 1;  // New take profit price
+            bool remove = 2;         // Remove take profit
+        }
+    }
+    TakeProfitModification take_profit = 3;
+    
+    string request_id = 4;
+}
+
+// ModifyTradeProtectionResponse confirms protection changes.
+message ModifyTradeProtectionResponse {
+    bool accepted = 1;
+    string trade_id = 2;
+    string request_id = 3;
+    
+    // Updated order IDs
+    string stop_loss_order_id = 4;
+    string take_profit_order_id = 5;
+    
+    // Trade details
+    double trade_quantity = 6;
+    double trade_entry_price = 7;
+    double current_price = 8;
+    
+    // Risk metrics
+    double max_loss = 9;    // Based on stop loss
+    double max_profit = 10; // Based on take profit
+    
+    string reject_reason = 11;
+    RejectCode reject_code = 12;
+    
+    int64 timestamp_us = 13;
+}

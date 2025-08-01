@@ -1,29 +1,127 @@
-# Generated files
+# Generated code directories
 gen/
-*.pb.go
-*.pb.gw.go
-*_grpc.pb.go
-*.swagger.json
+generated/
+out/
+build/
+dist/
 
-# IDE files
+# Language-specific generated files
+*.pb.go
+*.pb.cc
+*.pb.h
+*_pb2.py
+*_pb2_grpc.py
+*.pyi
+*.pb.dart
+*.pb.js
+*.pb.ts
+*.pb.rs
+*.pb.swift
+*.pb.rb
+*.pbjava
+
+# Buf build artifacts
+.buf/
+buf.lock
+
+# IDE and editor files
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
-
-# OS files
 .DS_Store
 Thumbs.db
 
-# Build artifacts
+# Build tools
+.gradle/
+target/
+node_modules/
+vendor/
+.cargo/
+Cargo.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+venv/
+env/
+ENV/
+
+# Go
+go.sum
+*.test
+*.out
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+.classpath
+.project
+.settings/
+
+# C++
 *.o
-*.a
 *.so
-*.dll
 *.dylib
+*.dll
+*.exe
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile.cmake
+
+# Rust
+/target/
+**/*.rs.bk
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+*.log
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
 
 # Temporary files
 *.tmp
 *.temp
-*.log
+*.bak
+*.backup
+*.old
+.cache/
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+junit.xml
+
+# Package files
+*.tar.gz
+*.zip
+*.7z
+*.dmg
+*.iso
+*.jar
+*.rar
+*.tar

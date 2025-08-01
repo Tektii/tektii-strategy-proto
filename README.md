@@ -1,6 +1,9 @@
-# Tektii Strategy Proto
+# Trading Interface Protocol
 
-Protocol Buffer definitions for Tektii's generic trading interface.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Buf](https://img.shields.io/badge/Buf-Schema%20Registry-blueviolet)](https://buf.build)
+
+A generic, provider-agnostic trading interface defined in Protocol Buffers. This interface enables trading strategies to be written once and work seamlessly across multiple brokers, exchanges, and trading platforms.
 
 ## Table of Contents
 
@@ -24,346 +27,238 @@ Protocol Buffer definitions for Tektii's generic trading interface.
 
 ## Overview
 
-This repository contains the protobuf specification that defines how trading strategies communicate with various trading providers (brokers, exchanges, backtesting engines) through a unified interface. 
+This repository defines a standardized gRPC service interface that acts as an abstraction layer between trading strategies and various trading providers (brokers, exchanges, etc.). By implementing this interface, trading strategies become portable across different providers without requiring code changes.
 
-**Key Benefits:**
-- **Write Once, Trade Anywhere**: Strategies work with any supported provider without code changes
-- **Provider Agnostic**: Abstract away provider-specific APIs and quirks
-- **Type Safety**: Strongly typed interfaces with built-in validation
-- **Industry Standard**: Based on gRPC for reliable, high-performance communication
+### Key Features
 
-### What This Repo Is
-
-- 📋 **Contract Definition**: The single source of truth for the trading interface
-- 🔌 **Integration Point**: Where strategies and providers meet
-- 📐 **Specification**: Defines all messages, services, and validation rules
-
-### What This Repo Is NOT
-
-- ❌ **Implementation**: No strategy or provider code lives here
-- ❌ **Business Logic**: Just the interface, not the logic
-- ❌ **Provider-Specific**: Remains generic and neutral
+- **Provider Agnostic**: Write once, trade anywhere
+- **Type Safety**: Strongly typed with Protocol Buffers
+- **Multi-Language Support**: Generate clients for Go, Python, Java, C++, Rust, and more
+- **Event-Driven Architecture**: Real-time market data and order updates
+- **Synchronous Order Management**: Immediate feedback on order operations
+- **Risk Management**: Built-in pre-trade risk checks and validation
+- **Comprehensive Data Types**: Support for equities, futures, options, and crypto
 
 ## Architecture
 
 ```
-┌─────────────────┐         gRPC          ┌──────────────────┐
-│ Trading Strategy│◄──────────────────────►│ Provider Adapter │
-│  (Any Language) │   TektiiStrategy       │  (Platform Side) │
-└─────────────────┘      Service           └──────────────────┘
-        ▲                                            │
-        │                                            ▼
-        │                                   ┌────────────────┐
-        └───────── Uses this proto ────────►│ Specific Broker│
-                                            │      API       │
-                                            └────────────────┘
+┌─────────────────┐     gRPC      ┌──────────────────┐     Provider API    ┌─────────────────┐
+│                 │ ◄──────────► │                  │ ◄────────────────► │                 │
+│ Trading Strategy│               │ Provider Adapter │                     │ Broker/Exchange │
+│                 │               │                  │                     │                 │
+└─────────────────┘               └──────────────────┘                     └─────────────────┘
+
+Your Strategy Code                Our Interface                            Any Trading Provider
 ```
 
-### Communication Flow
+## Quick Start
 
-1. **Event-Driven Market Data**: Provider sends market events to strategy via `ProcessEvent`
-2. **Synchronous Order Management**: Strategy sends orders and gets immediate feedback
-3. **State Queries**: Strategy can query current positions, orders, and market data
-
-## Getting Started
-
-### Prerequisites
-
-- **macOS/Linux**: Primary development platforms
-- **Protocol Buffers**: `protoc` compiler (optional, buf handles this)
-- **buf CLI**: For linting and breaking change detection
-- **protolint**: Additional proto linting
-- **Make**: For running development commands
-
-### Local Development Setup
+### 1. Install Buf (Protocol Buffer toolchain)
 
 ```bash
-# Clone the repository
-git clone https://github.com/tektii/tektii-strategy-proto.git
-cd tektii-strategy-proto
+# macOS
+brew install bufbuild/buf/buf
 
-# Install development tools (macOS)
-make install
-
-# Verify setup
-make check
+# Linux
+curl -sSL https://github.com/bufbuild/buf/releases/download/v1.28.1/buf-Linux-x86_64 \
+  -o /usr/local/bin/buf && chmod +x /usr/local/bin/buf
 ```
 
-### Making Changes
-
-1. **Edit `strategy.proto`**: Make your changes to the proto file
-2. **Run Quality Checks**: `make check` runs all linting and validation
-3. **Check for Breaking Changes**: `make breaking` compares against main branch
-4. **Commit with Conventional Format**: 
-   ```bash
-   git add strategy.proto
-   git commit -m "feat: add market depth request message"
-   ```
-
-## Integration Guide
-
-### For Strategy Developers
-
-If you're building a trading strategy that uses this interface:
-
-1. **Choose Your Language**: Go, Python, Rust, or any gRPC-supported language
-2. **Generate Code**: Use buf or protoc to generate client/server code
-3. **Implement the Service**: Create a gRPC server that implements `TektiiStrategy`
-4. **Handle Events**: Process market events and return appropriate actions
-
-Example Python setup:
-```bash
-# Using the Tektii Python SDK (recommended)
-pip install tektii-strategy-sdk
-
-# Or generate your own
-buf generate --template buf.gen.python.yaml
-```
-
-### For Provider Adapter Developers
-
-If you're building an adapter for a specific broker/exchange:
-
-1. **Generate Client Code**: Create a gRPC client for `TektiiStrategy`
-2. **Map Provider Events**: Convert provider-specific events to `TektiiEvent`
-3. **Translate Orders**: Convert generic orders to provider-specific API calls
-4. **Handle Responses**: Map provider responses back to proto messages
-
-### Consuming This Proto
-
-#### Option 1: Via buf.build Registry (Recommended)
-
-```yaml
-# buf.yaml
-version: v1
-deps:
-  - buf.build/tektii/strategy-proto
-```
-
-#### Option 2: As Git Submodule
+### 2. Generate Code for Your Language
 
 ```bash
-git submodule add https://github.com/tektii/tektii-strategy-proto.git proto/tektii
+# Generate code for all configured languages
+buf generate
+
+# Generate only for specific languages
+buf generate --template buf.gen.yaml --include-imports
 ```
 
-#### Option 3: Direct Download
+### 3. Implement the Interface
 
-Download `strategy.proto` and include in your project.
+#### Python Example
 
-## Proto Design
+```python
+from concurrent import futures
+import grpc
+from trading.v1 import orders_pb2_grpc, orders_pb2, common_pb2
 
-### Service Methods
+class MyTradingStrategy(orders_pb2_grpc.TradingServiceServicer):
+    def Initialize(self, request, context):
+        # Initialize your strategy
+        return orders_pb2.InitResponse(success=True)
+    
+    def ProcessEvent(self, request, context):
+        # Handle market data events
+        if request.HasField('tick_data'):
+            self.handle_tick(request.tick_data)
+        return orders_pb2.ProcessEventResponse(success=True)
+    
+    def PlaceOrder(self, request, context):
+        # Validate and place orders
+        # This is called by your strategy when it wants to trade
+        pass
 
-The `TektiiStrategy` service defines these RPC methods:
+# Start the gRPC server
+server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+orders_pb2_grpc.add_TradingServiceServicer_to_server(MyTradingStrategy(), server)
+server.add_insecure_port('[::]:50051')
+server.start()
+```
 
-#### Event Processing
-- `ProcessEvent`: Receives market/trading events (one-way communication)
+#### Go Example
 
-#### Order Management (Synchronous)
-- `PlaceOrder`: Submit orders with immediate acceptance/rejection
-- `CancelOrder`: Cancel existing orders with confirmation
-- `ModifyOrder`: Modify order parameters with validation
-- `ValidateOrder`: Pre-trade risk check without placing
-- `ClosePosition`: Close positions with order creation
-- `ModifyTradeProtection`: Manage stop loss/take profit
+```go
+package main
 
-#### Lifecycle
-- `Initialize`: Strategy initialization with configuration
-- `Shutdown`: Graceful shutdown
+import (
+    "context"
+    pb "github.com/your-org/trading-interface-proto/gen/go/trading/v1"
+    "google.golang.org/grpc"
+)
 
-#### Queries
-- `GetState`: Current positions, orders, and account state
-- `GetHistoricalData`: Historical market data
-- `GetMarketDepth`: Order book/market depth
-- `GetRiskMetrics`: Portfolio risk calculations
+type MyTradingStrategy struct {
+    pb.UnimplementedTradingServiceServer
+}
+
+func (s *MyTradingStrategy) Initialize(ctx context.Context, req *pb.InitRequest) (*pb.InitResponse, error) {
+    // Initialize your strategy
+    return &pb.InitResponse{Success: true}, nil
+}
+
+func (s *MyTradingStrategy) ProcessEvent(ctx context.Context, req *pb.TradingEvent) (*pb.ProcessEventResponse, error) {
+    // Handle market data events
+    return &pb.ProcessEventResponse{Success: true}, nil
+}
+
+func main() {
+    server := grpc.NewServer()
+    pb.RegisterTradingServiceServer(server, &MyTradingStrategy{})
+    // Start server...
+}
+```
+
+## Message Types
+
+### Service Definition
+
+The main service `TradingService` provides:
+
+- **Event Processing**: Handle market data and trading events
+- **Order Management**: Place, cancel, and modify orders with immediate feedback
+- **Risk Management**: Validate orders and check risk metrics
+- **Data Queries**: Get historical data, market depth, and current state
 
 ### Event Types
 
-Events are wrapped in the `TektiiEvent` message:
+Events are delivered via the `ProcessEvent` RPC:
 
-```protobuf
-message TektiiEvent {
-  oneof event {
-    TickData tick_data = 1;
-    BarData bar_data = 2;
-    OrderUpdateEvent order_update = 3;
-    PositionUpdateEvent position_update = 4;
-    // ... more event types
-  }
-}
+- **Market Data**: Ticks, bars (OHLCV), option Greeks
+- **Order Updates**: Status changes, fills, rejections
+- **Position Updates**: P&L, quantity changes
+- **Account Updates**: Balance, margin, buying power
+- **System Events**: Connection status, errors
+
+### Order Types
+
+Supported order types with full lifecycle management:
+
+- Market orders
+- Limit orders
+- Stop orders
+- Stop-limit orders
+- Protective orders (stop loss, take profit)
+
+## Integration Guide
+
+For detailed integration instructions, see [docs/integration-guide.md](docs/integration-guide.md).
+
+## Supported Providers
+
+Adapters are available or planned for:
+
+- Interactive Brokers
+- Alpaca
+- TD Ameritrade
+- E*TRADE
+- Binance
+- Coinbase
+- Kraken
+- FIX Protocol (generic)
+- And more...
+
+## Development
+
+### Project Structure
+
+```
+trading-interface-proto/
+├── proto/
+│   └── trading/
+│       └── v1/
+│           ├── orders.proto      # Order management and main service
+│           ├── market_data.proto # Market data messages
+│           └── common.proto      # Shared types and enums
+├── gen/                          # Generated code (git ignored)
+├── examples/                     # Example implementations
+├── docs/                         # Documentation
+├── buf.yaml                      # Buf configuration
+├── buf.gen.yaml                  # Code generation configuration
+└── README.md
 ```
 
-### Design Principles
-
-1. **Provider Neutrality**: No provider-specific fields in core messages
-2. **Extensibility**: Use metadata maps for custom data
-3. **Backward Compatibility**: Never remove or renumber fields
-4. **Validation**: Built-in constraints using `validate.proto`
-5. **Clarity**: Clear field names and comprehensive comments
-
-## Language-Specific Implementation
-
-### Go
+### Building
 
 ```bash
-# Generate with buf
+# Lint proto files
+buf lint
+
+# Detect breaking changes
+buf breaking --against '.git#branch=main'
+
+# Generate code
 buf generate
-
-# Or with protoc
-protoc --go_out=. --go-grpc_out=. strategy.proto
 ```
 
-Example implementation:
-```go
-type strategyServer struct {
-    pb.UnimplementedTektiiStrategyServer
-}
-
-func (s *strategyServer) ProcessEvent(ctx context.Context, req *pb.ProcessEventRequest) (*pb.ProcessEventResponse, error) {
-    switch event := req.Event.Event.(type) {
-    case *pb.TektiiEvent_TickData:
-        // Handle tick data
-    case *pb.TektiiEvent_BarData:
-        // Handle bar data
-    }
-    return &pb.ProcessEventResponse{}, nil
-}
-```
-
-### Python
+### Testing
 
 ```bash
-# Using Tektii SDK (recommended)
-pip install tektii-strategy-sdk
-
-# Or generate manually
-python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. strategy.proto
-```
-
-Example implementation:
-```python
-from tektii_strategy_sdk import BaseStrategy
-from tektii_proto import strategy_pb2 as pb
-
-class MyStrategy(BaseStrategy):
-    def process_event(self, event: pb.TektiiEvent):
-        if event.HasField("tick_data"):
-            # Handle tick data
-            pass
-        elif event.HasField("bar_data"):
-            # Handle bar data
-            pass
-```
-
-### Rust
-
-```toml
-# Cargo.toml
-[dependencies]
-tonic = "0.10"
-prost = "0.12"
-
-[build-dependencies]
-tonic-build = "0.10"
-```
-
-```rust
-// build.rs
-fn main() {
-    tonic_build::compile_protos(&["strategy.proto"], &["."])
-        .expect("Failed to compile protos");
-}
-```
-
-## Testing
-
-### Unit Testing Your Strategy
-
-1. **Mock the gRPC Service**: Use language-specific mocking tools
-2. **Test Event Processing**: Send sample events and verify responses
-3. **Test Order Logic**: Verify order placement under different conditions
-4. **Test Error Handling**: Ensure graceful handling of failures
-
-### Integration Testing
-
-1. **Use Test Provider**: Connect to a paper trading or test environment
-2. **Replay Historical Data**: Test with real market data sequences
-3. **Validate State Management**: Ensure positions and orders track correctly
-
-### Example Test Structure
-
-```
-tests/
-├── unit/
-│   ├── test_event_processing.py
-│   ├── test_order_management.py
-│   └── test_risk_checks.py
-├── integration/
-│   ├── test_provider_connection.py
-│   └── test_end_to_end_flow.py
-└── fixtures/
-    ├── sample_events.json
-    └── expected_orders.json
+# Run example strategies
+cd examples/python && python -m pytest
+cd examples/go && go test ./...
 ```
 
 ## Contributing
 
-### Development Workflow
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-1. **Fork and Clone**: Fork the repo and clone locally
-2. **Create Branch**: `git checkout -b feature/your-feature`
-3. **Make Changes**: Edit `strategy.proto` with your changes
-4. **Run Checks**: `make check` must pass
-5. **Test Breaking Changes**: `make breaking` to ensure compatibility
-6. **Commit**: Use conventional commits (feat:, fix:, docs:, etc.)
-7. **Push and PR**: Push branch and create pull request
+### Development Setup
 
-### Pull Request Guidelines
-
-- **Title**: Use conventional commit format
-- **Description**: Explain what and why
-- **Breaking Changes**: Clearly mark if breaking
-- **Testing**: Describe testing approach
-- **Documentation**: Update README if needed
-
-### Code Review Process
-
-1. Automated checks must pass (linting, breaking changes)
-2. At least one maintainer approval required
-3. Discussion on design decisions if needed
-4. Squash and merge to maintain clean history
-
-## Troubleshooting
-
-### Common Issues
-
-#### "Import not found" Errors
-- Ensure you have the latest proto file
-- Check your import paths match the package name
-- Verify buf.yaml configuration if using buf
-
-#### Validation Failures
-- Check field constraints in proto comments
-- Use proper validation libraries for your language
-- Ensure all required fields are populated
-
-#### gRPC Connection Issues
-- Verify server is running on correct port
-- Check firewall/network settings
-- Enable gRPC logging for debugging
-
-#### Breaking Change Detected
-- Review the breaking change carefully
-- If intentional, update major version
-- If accidental, revert the change
-- Coordinate with all consumers before merging
-
-### Getting Help
-
-- 📖 Check existing issues: [GitHub Issues](https://github.com/tektii/tektii-strategy-proto/issues)
-- 💬 Ask in discussions: [GitHub Discussions](https://github.com/tektii/tektii-strategy-proto/discussions)
-- 📧 Email: engineering@tektii.com
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run linting and tests
+5. Submit a pull request
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- **Documentation**: [Full Documentation](docs/)
+- **Examples**: [Example Implementations](examples/)
+- **Issues**: [GitHub Issues](https://github.com/your-org/trading-interface-proto/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/trading-interface-proto/discussions)
+
+## Acknowledgments
+
+This interface design is inspired by industry standards including:
+- FIX Protocol
+- Interactive Brokers API
+- Alpaca Trading API
+- CQG API
+
+---
+
+Built with ❤️ for the algorithmic trading community

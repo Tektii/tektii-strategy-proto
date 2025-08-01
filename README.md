@@ -42,14 +42,38 @@ This repository defines a standardized gRPC service interface that acts as an ab
 ## Architecture
 
 ```
-┌─────────────────┐     gRPC      ┌──────────────────┐     Provider API    ┌─────────────────┐
-│                 │ ◄──────────► │                  │ ◄────────────────► │                 │
-│ Trading Strategy│               │ Provider Adapter │                     │ Broker/Exchange │
-│                 │               │                  │                     │                 │
-└─────────────────┘               └──────────────────┘                     └─────────────────┘
+┌─────────────────┐              ┌──────────────────┐              ┌─────────────────┐
+│                 │   gRPC       │                  │  Provider    │                 │
+│ Trading Strategy│ ◄──────────► │ Provider Adapter │ ◄─────────► │ Broker/Exchange │
+│                 │              │                  │     API      │                 │
+└─────────────────┘              └──────────────────┘              └─────────────────┘
+     ▲                                    ▲
+     │                                    │
+     └────────────────────────────────────┘
+          Bidirectional gRPC Connection
 
-Your Strategy Code                Our Interface                            Any Trading Provider
+Your Strategy Code                Our Interface                   Any Trading Provider
 ```
+
+### Service Architecture
+
+The protocol defines two complementary gRPC services:
+
+1. **TektiiStrategy** (implemented by your strategy):
+   - Receives market events and trading updates
+   - Handles initialization and shutdown
+   - Processes events internally without returning trading actions
+
+2. **TektiiBroker** (implemented by provider adapters):
+   - Handles order management (place, cancel, modify)
+   - Provides market data and state queries
+   - Performs risk checks and validation
+
+This separation ensures:
+- Clear responsibility boundaries
+- Strategies remain provider-agnostic
+- Synchronous order operations with immediate feedback
+- Event-driven market data processing
 
 ## Quick Start
 
@@ -81,9 +105,14 @@ buf generate --template buf.gen.yaml --include-imports
 ```python
 from concurrent import futures
 import grpc
-from trading.v1 import orders_pb2_grpc, orders_pb2, common_pb2
+from trading.v1 import service_pb2_grpc, orders_pb2, common_pb2
 
-class MyTradingStrategy(orders_pb2_grpc.TektiiStrategyServicer):
+class MyTradingStrategy(service_pb2_grpc.TektiiStrategyServicer):
+    def __init__(self):
+        # Connect to broker service
+        channel = grpc.insecure_channel('localhost:50052')
+        self.broker = service_pb2_grpc.TektiiBrokerStub(channel)
+    
     def Initialize(self, request, context):
         # Initialize your strategy
         return orders_pb2.InitResponse(success=True)
@@ -91,17 +120,24 @@ class MyTradingStrategy(orders_pb2_grpc.TektiiStrategyServicer):
     def ProcessEvent(self, request, context):
         # Handle market data events
         if request.HasField('tick_data'):
-            self.handle_tick(request.tick_data)
+            # Make trading decision
+            if should_buy(request.tick_data):
+                # Call broker to place order
+                order_request = orders_pb2.PlaceOrderRequest(
+                    symbol=request.tick_data.symbol,
+                    side=common_pb2.ORDER_SIDE_BUY,
+                    order_type=common_pb2.ORDER_TYPE_MARKET,
+                    quantity=100
+                )
+                response = self.broker.PlaceOrder(order_request)
+                if response.accepted:
+                    print(f"Order placed: {response.order_id}")
+        
         return orders_pb2.ProcessEventResponse(success=True)
-    
-    def PlaceOrder(self, request, context):
-        # Validate and place orders
-        # This is called by your strategy when it wants to trade
-        pass
 
-# Start the gRPC server
+# Start the strategy gRPC server
 server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-orders_pb2_grpc.add_TektiiStrategyServicer_to_server(MyTradingStrategy(), server)
+service_pb2_grpc.add_TektiiStrategyServicer_to_server(MyTradingStrategy(), server)
 server.add_insecure_port('[::]:50051')
 server.start()
 ```
@@ -113,12 +149,26 @@ package main
 
 import (
     "context"
+    "log"
     pb "github.com/Tektii/tektii-strategy-proto/gen/go/trading/v1"
     "google.golang.org/grpc"
 )
 
 type MyTradingStrategy struct {
     pb.UnimplementedTektiiStrategyServer
+    brokerClient pb.TektiiBrokerClient
+}
+
+func NewStrategy() (*MyTradingStrategy, error) {
+    // Connect to broker service
+    conn, err := grpc.Dial("localhost:50052", grpc.WithInsecure())
+    if err != nil {
+        return nil, err
+    }
+    
+    return &MyTradingStrategy{
+        brokerClient: pb.NewTektiiBrokerClient(conn),
+    }, nil
 }
 
 func (s *MyTradingStrategy) Initialize(ctx context.Context, req *pb.InitRequest) (*pb.InitResponse, error) {
@@ -128,23 +178,50 @@ func (s *MyTradingStrategy) Initialize(ctx context.Context, req *pb.InitRequest)
 
 func (s *MyTradingStrategy) ProcessEvent(ctx context.Context, req *pb.TektiiEvent) (*pb.ProcessEventResponse, error) {
     // Handle market data events
+    if tick := req.GetTickData(); tick != nil {
+        // Make trading decision
+        if shouldBuy(tick) {
+            // Call broker to place order
+            orderReq := &pb.PlaceOrderRequest{
+                Symbol:    tick.Symbol,
+                Side:      pb.OrderSide_ORDER_SIDE_BUY,
+                OrderType: pb.OrderType_ORDER_TYPE_MARKET,
+                Quantity:  100,
+            }
+            
+            resp, err := s.brokerClient.PlaceOrder(ctx, orderReq)
+            if err != nil {
+                log.Printf("Failed to place order: %v", err)
+            } else if resp.Accepted {
+                log.Printf("Order placed: %s", resp.OrderId)
+            }
+        }
+    }
+    
     return &pb.ProcessEventResponse{Success: true}, nil
 }
 
 func main() {
+    strategy, err := NewStrategy()
+    if err != nil {
+        log.Fatal(err)
+    }
+    
     server := grpc.NewServer()
-    pb.RegisterTektiiStrategyServer(server, &MyTradingStrategy{})
+    pb.RegisterTektiiStrategyServer(server, strategy)
     // Start server...
 }
 ```
 
 ## Message Types
 
-### Service Definition
+### Service Definitions
 
-The main service `TektiiStrategy` provides:
-
+**TektiiStrategy** (implemented by strategies):
 - **Event Processing**: Handle market data and trading events
+- **Lifecycle Management**: Initialize and shutdown operations
+
+**TektiiBroker** (implemented by provider adapters):
 - **Order Management**: Place, cancel, and modify orders with immediate feedback
 - **Risk Management**: Validate orders and check risk metrics
 - **Data Queries**: Get historical data, market depth, and current state
@@ -173,6 +250,16 @@ Supported order types with full lifecycle management:
 
 For detailed integration instructions, see [docs/integration-guide.md](docs/integration-guide.md).
 
+### Connection Flow
+
+1. **Provider adapter** starts and implements `TektiiBroker` service (port 50052)
+2. **Strategy** starts and implements `TektiiStrategy` service (port 50051)
+3. **Provider adapter** connects to strategy as a client
+4. **Strategy** connects to provider adapter as a client
+5. **Bidirectional communication** established:
+   - Provider → Strategy: Market events, initialization, shutdown
+   - Strategy → Provider: Order operations, state queries, risk checks
+
 ## Supported Providers
 
 Adapters are available or planned for:
@@ -196,7 +283,7 @@ tektii-strategy-proto/
 ├── proto/
 │   └── trading/
 │       └── v1/
-│           ├── service.proto     # TektiiStrategy service definition
+│           ├── service.proto     # Service definitions (TektiiStrategy & TektiiBroker)
 │           ├── orders.proto      # Order management and event messages
 │           ├── market_data.proto # Market data messages
 │           └── common.proto      # Shared types and enums

@@ -10,9 +10,8 @@ option java_multiple_files = true;
 option java_package = "com.tektii.trading.v1";
 option optimize_for = SPEED;
 
-// TektiiStrategy provides a generic trading interface for strategies.
-// This service is implemented by trading strategies and called by provider adapters.
-// It supports both event-driven market data processing and synchronous order management.
+// TektiiStrategy is implemented by trading strategies and called by provider adapters.
+// It handles event processing and lifecycle management.
 service TektiiStrategy {
   // Event Processing - strategies handle internally, no actions returned
   rpc ProcessEvent(TektiiEvent) returns (ProcessEventResponse);
@@ -20,7 +19,11 @@ service TektiiStrategy {
   // Lifecycle Management
   rpc Initialize(InitRequest) returns (InitResponse);
   rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
+}
 
+// TektiiBroker is implemented by provider adapters (backtest engine, brokers).
+// Strategies call these methods to query state and manage orders.
+service TektiiBroker {
   // Query Methods - pull-based data access
   rpc GetState(StateRequest) returns (StateResponse);
   rpc GetHistoricalData(HistoricalDataRequest) returns (HistoricalDataResponse);

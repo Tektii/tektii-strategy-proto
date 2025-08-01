@@ -6,8 +6,8 @@ import "google/protobuf/wrappers.proto";
 
 // TektiiStrategy service - implemented by trading strategies
 service TektiiStrategy {
-    // Process an event and return actions to take
-    rpc ProcessEvent(TektiiEvent) returns (ActionResponse);
+    // Process an event - strategies handle internally, no actions returned
+    rpc ProcessEvent(TektiiEvent) returns (ProcessEventResponse);
 
     // Initialize the strategy with configuration
     rpc Initialize(InitRequest) returns (InitResponse);
@@ -27,6 +27,25 @@ service TektiiStrategy {
 
     // Get portfolio risk metrics
     rpc GetRiskMetrics(RiskMetricsRequest) returns (RiskMetricsResponse);
+
+    // Synchronous order management methods
+    // Place a new order with immediate confirmation/rejection
+    rpc PlaceOrder(PlaceOrderRequest) returns (PlaceOrderResponse);
+
+    // Cancel an existing order
+    rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
+
+    // Modify an existing order
+    rpc ModifyOrder(ModifyOrderRequest) returns (ModifyOrderResponse);
+
+    // Perform pre-trade risk check without placing order
+    rpc ValidateOrder(ValidateOrderRequest) returns (ValidateOrderResponse);
+
+    // Close a position
+    rpc ClosePosition(ClosePositionRequest) returns (ClosePositionResponse);
+
+    // Modify stop loss and/or take profit for a trade
+    rpc ModifyTradeProtection(ModifyTradeProtectionRequest) returns (ModifyTradeProtectionResponse);
 }
 
 // Base event wrapper that contains all possible event types
@@ -216,95 +235,16 @@ message SystemEvent {
     map<string, string> details = 3;
 }
 
-// Action response wrapper
-message ActionResponse {
-    // Multiple actions can be returned
-    repeated Action actions = 1;
-
+// Process event response - simple acknowledgment
+message ProcessEventResponse {
+    // Indicates if the event was processed successfully
+    bool success = 1;
+    
+    // Optional error message if processing failed
+    string error = 2;
+    
     // Optional metadata for debugging
-    map<string, string> metadata = 2;
-}
-
-// Individual action
-message Action {
-    oneof action {
-        PlaceOrderAction place_order = 1;
-        CancelOrderAction cancel_order = 2;
-        ModifyOrderAction modify_order = 3;
-        ClosePositionAction close_position = 4;
-        LogAction log = 5;
-        ModifyTradeProtectionAction modify_trade_protection = 6;
-    }
-}
-
-// Place a new order
-message PlaceOrderAction {
-    string symbol = 1;
-    OrderSide side = 2;
-    OrderType order_type = 3;
-    double quantity = 4;
-
-    // Prices (depending on order type)
-    double limit_price = 5;
-    double stop_price = 6;
-
-    // Time in force
-    TimeInForce time_in_force = 7;
-
-    // Optional metadata
-    string client_order_id = 8;
-    map<string, string> metadata = 9;
-
-    // For opening orders: automatic stop loss and take profit creation
-    // These orders will be created when the opening order fills
-    double stop_loss_price_on_fill = 10;
-    double take_profit_price_on_fill = 11;
-
-    // For stop loss/take profit orders: link to specific trade
-    // This allows creating SL/TP orders for existing trades
-    string target_trade_id = 12;
-}
-
-// Cancel an existing order
-message CancelOrderAction {
-    string order_id = 1;
-}
-
-// Modify an existing order
-message ModifyOrderAction {
-    string order_id = 1;
-
-    // Fields to modify (only set what needs to change)
-    google.protobuf.DoubleValue quantity = 2;
-    google.protobuf.DoubleValue limit_price = 3;
-    google.protobuf.DoubleValue stop_price = 4;
-}
-
-// Close a position
-message ClosePositionAction {
-    string symbol = 1;
-    double quantity = 2;  // 0 means close entire position
-}
-
-// Modify stop loss and/or take profit for an existing trade
-message ModifyTradeProtectionAction {
-    string trade_id = 1;
-    
-    // Use wrapper types to distinguish between "update to this value" vs "don't change"
-    // If a field is not set, it won't be modified
-    google.protobuf.DoubleValue stop_loss_price = 2;
-    google.protobuf.DoubleValue take_profit_price = 3;
-    
-    // Set to true to remove the stop loss or take profit entirely
-    bool remove_stop_loss = 4;
-    bool remove_take_profit = 5;
-}
-
-// Log a message (for debugging/monitoring)
-message LogAction {
-    LogLevel level = 1;
-    string message = 2;
-    map<string, string> context = 3;
+    map<string, string> metadata = 3;
 }
 
 // Lifecycle messages
@@ -381,6 +321,8 @@ message Order {
     double limit_price = 8;
     double stop_price = 9;
     int64 created_at_us = 10;
+    OrderIntent order_intent = 11;
+    string parent_trade_id = 12;  // For protective orders
 }
 
 // Account state snapshot
@@ -483,6 +425,17 @@ message PositionRisk {
     double exposure = 5;
 }
 
+// Stop order configuration
+message StopOrder {
+    double stop_price = 1;
+}
+
+// Stop-limit order configuration
+message StopLimitOrder {
+    double stop_price = 1;
+    double limit_price = 2;
+}
+
 
 // Enums
 enum OrderStatus {
@@ -511,6 +464,14 @@ enum OrderType {
     ORDER_TYPE_STOP_LIMIT = 4;
 }
 
+enum OrderIntent {
+    ORDER_INTENT_UNKNOWN = 0;
+    ORDER_INTENT_OPEN = 1;       // Opening a new position
+    ORDER_INTENT_CLOSE = 2;      // Closing a position
+    ORDER_INTENT_STOP_LOSS = 3;  // Protective stop loss
+    ORDER_INTENT_TAKE_PROFIT = 4; // Protective take profit
+}
+
 enum TimeInForce {
     TIME_IN_FORCE_UNKNOWN = 0;
     TIME_IN_FORCE_DAY = 1;
@@ -528,10 +489,307 @@ enum SystemEventType {
     SYSTEM_EVENT_INFO = 5;
 }
 
-enum LogLevel {
-    LOG_LEVEL_UNKNOWN = 0;
-    LOG_LEVEL_DEBUG = 1;
-    LOG_LEVEL_INFO = 2;
-    LOG_LEVEL_WARN = 3;
-    LOG_LEVEL_ERROR = 4;
+
+// Synchronous Order Management Messages
+
+// Protective orders to create when an opening order fills
+message ProtectiveOrdersOnFill {
+    // Stop loss order configuration
+    oneof stop_loss {
+        StopOrder stop = 1;
+        StopLimitOrder stop_limit = 2;
+    }
+    
+    // Take profit order details (will create a LIMIT order)
+    double take_profit_price = 3;
+}
+
+// Place order request - with synchronous confirmation
+message PlaceOrderRequest {
+    string symbol = 1;
+    OrderSide side = 2;
+    OrderType order_type = 3;
+    double quantity = 4;
+
+    // Prices (depending on order type)
+    double limit_price = 5;
+    double stop_price = 6;
+
+    // Time in force
+    TimeInForce time_in_force = 7;
+
+    // Optional metadata
+    string client_order_id = 8;
+    map<string, string> metadata = 9;
+
+    // Order intent/purpose
+    OrderIntent order_intent = 10;
+    
+    // For protective orders, link to the trade they protect
+    string parent_trade_id = 11;
+    
+    // Automatic protective order creation on fill
+    ProtectiveOrdersOnFill protective_orders_on_fill = 12;
+
+    // Request metadata
+    string request_id = 20;  // Client correlation ID
+    bool validate_only = 21; // Dry run for pre-trade checks
+}
+
+// Place order response with immediate feedback
+message PlaceOrderResponse {
+    bool accepted = 1;
+    string order_id = 2;        // Provider-assigned ID
+    string request_id = 3;      // Echo back for correlation
+    
+    // Rejection details
+    string reject_reason = 4;
+    RejectCode reject_code = 5;
+    
+    // Pre-trade risk check results
+    RiskCheckResult risk_check = 6;
+    
+    // Estimated execution metrics
+    double estimated_fill_price = 7;
+    double estimated_commission = 8;
+    
+    // Timestamp of acceptance/rejection
+    int64 timestamp_us = 9;
+}
+
+// Cancel order request
+message CancelOrderRequest {
+    string order_id = 1;
+    string request_id = 2;  // Client correlation ID
+}
+
+// Cancel order response
+message CancelOrderResponse {
+    bool accepted = 1;
+    string order_id = 2;
+    string request_id = 3;
+    
+    // If cancel was rejected
+    string reject_reason = 4;
+    RejectCode reject_code = 5;
+    
+    // State at time of cancel
+    OrderStatus previous_status = 6;
+    double filled_quantity = 7;
+    
+    int64 timestamp_us = 8;
+}
+
+// Modify order request
+message ModifyOrderRequest {
+    string order_id = 1;
+
+    // Fields to modify (only set what needs to change)
+    google.protobuf.DoubleValue quantity = 2;
+    google.protobuf.DoubleValue limit_price = 3;
+    google.protobuf.DoubleValue stop_price = 4;
+    
+    string request_id = 5;  // Client correlation ID
+}
+
+// Modify order response
+message ModifyOrderResponse {
+    bool accepted = 1;
+    string order_id = 2;
+    string request_id = 3;
+    
+    // If modify was rejected
+    string reject_reason = 4;
+    RejectCode reject_code = 5;
+    
+    // New risk metrics after modification
+    RiskCheckResult risk_check = 6;
+    
+    int64 timestamp_us = 7;
+}
+
+// Validate order request (pre-trade check without placing)
+message ValidateOrderRequest {
+    // Same fields as PlaceOrderRequest minus the execution flags
+    string symbol = 1;
+    OrderSide side = 2;
+    OrderType order_type = 3;
+    double quantity = 4;
+    double limit_price = 5;
+    double stop_price = 6;
+    
+    string request_id = 7;
+}
+
+// Validate order response
+message ValidateOrderResponse {
+    bool valid = 1;
+    string request_id = 2;
+    
+    // Validation results
+    repeated ValidationError errors = 3;
+    repeated ValidationWarning warnings = 4;
+    
+    // Risk metrics if validation passed
+    RiskCheckResult risk_check = 5;
+    
+    // Market impact estimates
+    double estimated_fill_price = 6;
+    double estimated_market_impact = 7;
+}
+
+// Risk check results
+message RiskCheckResult {
+    double margin_required = 1;
+    double margin_available = 2;
+    double buying_power_used = 3;
+    double buying_power_remaining = 4;
+    
+    // Position limits
+    double position_limit = 5;
+    double current_position = 6;
+    double resulting_position = 7;
+    
+    // Risk metrics
+    double portfolio_var_before = 8;
+    double portfolio_var_after = 9;
+    double concentration_risk = 10;
+    
+    // Warnings that don't block the order
+    map<string, string> warnings = 11;
+}
+
+// Validation error
+message ValidationError {
+    string field = 1;
+    string message = 2;
+    ValidationErrorCode code = 3;
+}
+
+// Validation warning
+message ValidationWarning {
+    string field = 1;
+    string message = 2;
+    ValidationWarningCode code = 3;
+}
+
+// Rejection codes for order operations
+enum RejectCode {
+    REJECT_CODE_UNKNOWN = 0;
+    REJECT_CODE_INSUFFICIENT_MARGIN = 1;
+    REJECT_CODE_POSITION_LIMIT = 2;
+    REJECT_CODE_INVALID_SYMBOL = 3;
+    REJECT_CODE_MARKET_CLOSED = 4;
+    REJECT_CODE_INVALID_QUANTITY = 5;
+    REJECT_CODE_INVALID_PRICE = 6;
+    REJECT_CODE_RATE_LIMIT = 7;
+    REJECT_CODE_DUPLICATE_ORDER = 8;
+    REJECT_CODE_ACCOUNT_RESTRICTED = 9;
+    REJECT_CODE_ORDER_NOT_FOUND = 10;
+    REJECT_CODE_ORDER_NOT_MODIFIABLE = 11;
+    REJECT_CODE_RISK_CHECK_FAILED = 12;
+}
+
+// Validation error codes
+enum ValidationErrorCode {
+    VALIDATION_ERROR_UNKNOWN = 0;
+    VALIDATION_ERROR_INVALID_SYMBOL = 1;
+    VALIDATION_ERROR_INVALID_QUANTITY = 2;
+    VALIDATION_ERROR_INVALID_PRICE = 3;
+    VALIDATION_ERROR_MISSING_REQUIRED_FIELD = 4;
+    VALIDATION_ERROR_CONFLICTING_FIELDS = 5;
+}
+
+// Validation warning codes
+enum ValidationWarningCode {
+    VALIDATION_WARNING_UNKNOWN = 0;
+    VALIDATION_WARNING_HIGH_CONCENTRATION = 1;
+    VALIDATION_WARNING_UNUSUAL_SIZE = 2;
+    VALIDATION_WARNING_FAR_FROM_MARKET = 3;
+    VALIDATION_WARNING_LOW_LIQUIDITY = 4;
+    VALIDATION_WARNING_HIGH_VOLATILITY = 5;
+}
+
+// Close position request
+message ClosePositionRequest {
+    string symbol = 1;
+    double quantity = 2;  // 0 or omitted means close entire position
+    
+    // Order routing preferences
+    OrderType order_type = 3;  // Default MARKET
+    double limit_price = 4;    // For LIMIT orders
+    
+    string request_id = 5;
+}
+
+// Close position response
+message ClosePositionResponse {
+    bool accepted = 1;
+    string request_id = 2;
+    
+    // Created order IDs (may be multiple for complex positions)
+    repeated string order_ids = 3;
+    
+    // Position details
+    double position_quantity = 4;
+    double closing_quantity = 5;
+    double remaining_quantity = 6;
+    
+    // Rejection details if not accepted
+    string reject_reason = 7;
+    RejectCode reject_code = 8;
+    
+    int64 timestamp_us = 9;
+}
+
+// Modify trade protection request
+message ModifyTradeProtectionRequest {
+    string trade_id = 1;
+    
+    // Stop loss modifications
+    message StopLossModification {
+        oneof modification {
+            StopOrder stop = 1;
+            StopLimitOrder stop_limit = 2;
+            bool remove = 3;  // Set to true to remove stop loss
+        }
+    }
+    StopLossModification stop_loss = 2;
+    
+    // Take profit modifications
+    message TakeProfitModification {
+        oneof modification {
+            double limit_price = 1;  // New take profit price
+            bool remove = 2;         // Set to true to remove take profit
+        }
+    }
+    TakeProfitModification take_profit = 3;
+    
+    string request_id = 4;
+}
+
+// Modify trade protection response
+message ModifyTradeProtectionResponse {
+    bool accepted = 1;
+    string trade_id = 2;
+    string request_id = 3;
+    
+    // Updated order IDs
+    string stop_loss_order_id = 4;
+    string take_profit_order_id = 5;
+    
+    // Current trade details
+    double trade_quantity = 6;
+    double trade_entry_price = 7;
+    double current_price = 8;
+    
+    // Risk metrics after modification
+    double max_loss = 9;    // Based on stop loss
+    double max_profit = 10; // Based on take profit
+    
+    // Rejection details if not accepted
+    string reject_reason = 11;
+    RejectCode reject_code = 12;
+    
+    int64 timestamp_us = 13;
 }

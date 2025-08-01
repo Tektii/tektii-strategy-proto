@@ -38,6 +38,10 @@ jobs:
       with:
         fetch-depth: 0  # Need full history for breaking change detection
     
+    - name: Fetch main branch
+      run: |
+        git fetch origin main:main
+    
     - name: Install buf
       run: |
         curl -sSL https://github.com/bufbuild/buf/releases/latest/download/buf-Linux-x86_64 -o buf

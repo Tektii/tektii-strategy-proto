@@ -2,220 +2,217 @@ syntax = "proto3";
 
 package trading.v1;
 
+import "trading/v1/common.proto";
+
 option go_package = "github.com/Tektii/tektii-strategy-proto/gen/go/trading/v1;tradingv1";
 option java_multiple_files = true;
 option java_package = "com.tektii.trading.v1";
 option optimize_for = SPEED;
 
-import "validate/validate.proto";
-import "trading/v1/common.proto";
-
 // Market data messages for real-time and historical data
 
 // TickData represents high-frequency quote and trade data.
 message TickData {
-    string symbol = 1;
-    
-    // Quote data
-    double bid = 2;
-    double ask = 3;
-    int64 bid_size = 4;
-    int64 ask_size = 5;
-    
-    // Trade data
-    double last = 6;
-    int64 last_size = 7;
-    
-    // Derived values
-    double mid = 8;  // (bid + ask) / 2
-    
-    // Metadata
-    string exchange = 9;
-    
-    // TickType indicates the type of data in this tick.
-    enum TickType {
-        TICK_TYPE_UNKNOWN = 0;
-        TICK_TYPE_QUOTE = 1;           // Bid/ask update only
-        TICK_TYPE_TRADE = 2;           // Trade execution only
-        TICK_TYPE_QUOTE_AND_TRADE = 3; // Both quote and trade data
-    }
-    TickType tick_type = 10;
+  string symbol = 1;
+
+  // Quote data
+  double bid = 2;
+  double ask = 3;
+  int64 bid_size = 4;
+  int64 ask_size = 5;
+
+  // Trade data
+  double last = 6;
+  int64 last_size = 7;
+
+  // Derived values
+  double mid = 8; // (bid + ask) / 2
+
+  // Metadata
+  string exchange = 9;
+
+  // TickType indicates the type of data in this tick.
+  enum TickType {
+    TICK_TYPE_UNKNOWN = 0;
+    TICK_TYPE_QUOTE = 1; // Bid/ask update only
+    TICK_TYPE_TRADE = 2; // Trade execution only
+    TICK_TYPE_QUOTE_AND_TRADE = 3; // Both quote and trade data
+  }
+  TickType tick_type = 10;
 }
 
 // BarData represents aggregated OHLCV data for a time period.
 message BarData {
-    string symbol = 1;
-    
-    // OHLCV data
-    double open = 2;
-    double high = 3;
-    double low = 4;
-    double close = 5;
-    int64 volume = 6;
-    
-    // Additional aggregates
-    double vwap = 7;          // Volume-weighted average price
-    int64 trade_count = 8;    // Number of trades in this bar
-    
-    // Bar metadata
-    enum BarType {
-        BAR_TYPE_UNKNOWN = 0;
-        BAR_TYPE_TIME = 1;     // Time-based bars (1min, 5min, etc.)
-        BAR_TYPE_TICK = 2;     // Tick count based (every N ticks)
-        BAR_TYPE_VOLUME = 3;   // Volume based (every N shares)
-        BAR_TYPE_DOLLAR = 4;   // Dollar value based (every $N traded)
-    }
-    BarType bar_type = 9;
-    int32 bar_size = 10;       // e.g., 1 for 1min, 5 for 5min
-    string bar_size_unit = 11; // e.g., "min", "hour", "day"
+  string symbol = 1;
+
+  // OHLCV data
+  double open = 2;
+  double high = 3;
+  double low = 4;
+  double close = 5;
+  int64 volume = 6;
+
+  // Additional aggregates
+  double vwap = 7; // Volume-weighted average price
+  int64 trade_count = 8; // Number of trades in this bar
+
+  // Bar metadata
+  enum BarType {
+    BAR_TYPE_UNKNOWN = 0;
+    BAR_TYPE_TIME = 1; // Time-based bars (1min, 5min, etc.)
+    BAR_TYPE_TICK = 2; // Tick count based (every N ticks)
+    BAR_TYPE_VOLUME = 3; // Volume based (every N shares)
+    BAR_TYPE_DOLLAR = 4; // Dollar value based (every $N traded)
+  }
+  BarType bar_type = 9;
+  int32 bar_size = 10; // e.g., 1 for 1min, 5 for 5min
+  string bar_size_unit = 11; // e.g., "min", "hour", "day"
 }
 
 // OptionGreeks represents options pricing and risk metrics.
 message OptionGreeks {
-    string symbol = 1;
-    
-    // The Greeks
-    double delta = 2;   // Rate of change of option price with underlying price
-    double gamma = 3;   // Rate of change of delta with underlying price
-    double theta = 4;   // Time decay
-    double vega = 5;    // Sensitivity to volatility
-    double rho = 6;     // Sensitivity to interest rate
-    
-    // Additional option metrics
-    double implied_volatility = 7;
-    double theoretical_value = 8;
-    
-    // Context data (important for Greeks interpretation)
-    double underlying_price = 9;
-    double interest_rate = 10;
-    int32 days_to_expiry = 11;
+  string symbol = 1;
+
+  // The Greeks
+  double delta = 2; // Rate of change of option price with underlying price
+  double gamma = 3; // Rate of change of delta with underlying price
+  double theta = 4; // Time decay
+  double vega = 5; // Sensitivity to volatility
+  double rho = 6; // Sensitivity to interest rate
+
+  // Additional option metrics
+  double implied_volatility = 7;
+  double theoretical_value = 8;
+
+  // Context data (important for Greeks interpretation)
+  double underlying_price = 9;
+  double interest_rate = 10;
+  int32 days_to_expiry = 11;
 }
 
 // Market data event types
 
 // OrderUpdateEvent notifies of order status changes.
 message OrderUpdateEvent {
-    string order_id = 1;
-    string symbol = 2;
-    OrderStatus status = 3;
-    OrderSide side = 4;
-    OrderType order_type = 5;
+  string order_id = 1;
+  string symbol = 2;
+  OrderStatus status = 3;
+  OrderSide side = 4;
+  OrderType order_type = 5;
 
-    // Quantities
-    double quantity = 6;
-    double filled_quantity = 7;
-    double remaining_quantity = 8;
+  // Quantities
+  double quantity = 6;
+  double filled_quantity = 7;
+  double remaining_quantity = 8;
 
-    // Prices
-    double limit_price = 9;
-    double stop_price = 10;
-    double avg_fill_price = 11;
+  // Prices
+  double limit_price = 9;
+  double stop_price = 10;
+  double avg_fill_price = 11;
 
-    // Timestamps
-    int64 created_at_us = 12;  // Order creation time
-    int64 updated_at_us = 13;  // Last update time
+  // Timestamps
+  int64 created_at_us = 12; // Order creation time
+  int64 updated_at_us = 13; // Last update time
 
-    // Additional information
-    string reject_reason = 14;
-    map<string, string> metadata = 15;
+  // Additional information
+  string reject_reason = 14;
+  map<string, string> metadata = 15;
 }
 
 // PositionUpdateEvent notifies of position changes.
 message PositionUpdateEvent {
-    string symbol = 1;
-    double quantity = 2;      // Current position size
-    double avg_price = 3;     // Average entry price
+  string symbol = 1;
+  double quantity = 2; // Current position size
+  double avg_price = 3; // Average entry price
 
-    // P&L information
-    double unrealized_pnl = 4;
-    double realized_pnl = 5;
-    double market_value = 6;
+  // P&L information
+  double unrealized_pnl = 4;
+  double realized_pnl = 5;
+  double market_value = 6;
 
-    // Current market prices
-    double current_price = 7;
-    double bid = 8;
-    double ask = 9;
+  // Current market prices
+  double current_price = 7;
+  double bid = 8;
+  double ask = 9;
 }
 
 // AccountUpdateEvent notifies of account balance changes.
 message AccountUpdateEvent {
-    // Balance information
-    double cash_balance = 1;
-    double portfolio_value = 2;
-    double buying_power = 3;
+  // Balance information
+  double cash_balance = 1;
+  double portfolio_value = 2;
+  double buying_power = 3;
 
-    // Margin information
-    double initial_margin = 4;
-    double maintenance_margin = 5;
-    double margin_used = 6;
+  // Margin information
+  double initial_margin = 4;
+  double maintenance_margin = 5;
+  double margin_used = 6;
 
-    // P&L information
-    double daily_pnl = 7;
-    double total_pnl = 8;
+  // P&L information
+  double daily_pnl = 7;
+  double total_pnl = 8;
 
-    // Risk metrics
-    double leverage = 9;
-    map<string, double> risk_metrics = 10;
+  // Risk metrics
+  double leverage = 9;
+  map<string, double> risk_metrics = 10;
 }
 
 // TradeEvent represents an individual trade execution.
 message TradeEvent {
-    string trade_id = 1;
-    string order_id = 2;
-    string symbol = 3;
+  string trade_id = 1;
+  string order_id = 2;
+  string symbol = 3;
 
-    OrderSide side = 4;
-    double quantity = 5;
-    double price = 6;
+  OrderSide side = 4;
+  double quantity = 5;
+  double price = 6;
 
-    int64 timestamp_us = 7;
+  int64 timestamp_us = 7;
 
-    // Fees and commissions
-    double commission = 8;
-    double fees = 9;
+  // Fees and commissions
+  double commission = 8;
+  double fees = 9;
 }
 
 // SystemEvent represents system-level notifications.
 message SystemEvent {
-    SystemEventType type = 1;
-    string message = 2;
-    map<string, string> details = 3;
+  SystemEventType type = 1;
+  string message = 2;
+  map<string, string> details = 3;
 }
 
 // Query messages for pulling market data
 
 // HistoricalDataRequest requests historical bar data.
 message HistoricalDataRequest {
-    string symbol = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
-    int64 start_timestamp_us = 2 [(validate.rules).int64.gt = 0];
-    int64 end_timestamp_us = 3 [(validate.rules).int64.gt = 0];
-    
-    // Bar size options
-    string bar_size = 4 [(validate.rules).string = {
-        in: ["1min", "5min", "15min", "30min", "1hour", "4hour", "1day"]
-    }];
-    
-    // Maximum number of bars to return
-    int32 limit = 5 [(validate.rules).int32 = {gte: 1, lte: 10000}];
+  string symbol = 1;
+  int64 start_timestamp_us = 2;
+  int64 end_timestamp_us = 3;
+
+  // Bar size options
+  string bar_size = 4; // Options: "1min", "5min", "15min", "30min", "1hour", "4hour", "1day"
+
+  // Maximum number of bars to return
+  int32 limit = 5; // Range: 1-10000
 }
 
 // HistoricalDataResponse returns historical bar data.
 message HistoricalDataResponse {
-    string symbol = 1;
-    string bar_size = 2;
-    repeated Bar bars = 3;
+  string symbol = 1;
+  string bar_size = 2;
+  repeated Bar bars = 3;
 }
 
 // MarketDepthRequest requests order book data.
 message MarketDepthRequest {
-    string symbol = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
-    int32 depth = 2;  // Number of price levels (default 10)
+  string symbol = 1;
+  int32 depth = 2; // Number of price levels (default 10)
 }
 
 // MarketDepthResponse returns current order book.
 message MarketDepthResponse {
-    string symbol = 1;
-    int64 timestamp_us = 2;
-    repeated PriceLevel bids = 3;  // Sorted by price descending
-    repeated PriceLevel asks = 4;  // Sorted by price ascending
+  string symbol = 1;
+  int64 timestamp_us = 2;
+  repeated PriceLevel bids = 3; // Sorted by price descending
+  repeated PriceLevel asks = 4; // Sorted by price ascending
 }

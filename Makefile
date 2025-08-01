@@ -24,10 +24,15 @@ format:
 # Check for breaking changes
 breaking:
 	@echo "Checking for breaking changes..."
-	@cd proto && buf breaking --against '.git#branch=main' || echo "No breaking changes detected (or no git history)"
+	@if [ "$$GITHUB_ACTIONS" = "true" ] && [ "$$GITHUB_EVENT_NAME" = "pull_request" ]; then \
+		echo "Running breaking change check against main branch..."; \
+		cd proto && buf breaking --against '.git#branch=main'; \
+	else \
+		echo "Skipping breaking change check (not in PR context)"; \
+	fi
 
 # Run all checks
-check: lint
+check: lint breaking
 	@echo "Running all checks..."
 	@cd proto && buf build
 	@echo "All checks passed!"

@@ -1,8 +1,6 @@
 name: Proto Quality & Registry Publish
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -32,13 +30,13 @@ jobs:
     
     - name: Run all checks
       run: make check
-    
-  publish:
+
+  breaking-changes:
     runs-on: ubuntu-latest
-    needs: lint
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history for breaking change detection
     
     - name: Install buf
       run: |
@@ -46,14 +44,7 @@ jobs:
         chmod +x buf
         sudo mv buf /usr/local/bin/
     
-    - name: Update buf dependencies
-      run: cd proto && buf dep update
-    
-    - name: Upload to buf.build registry
-      env:
-        BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+    - name: Check for breaking changes
       run: |
-        # Only run if BUF_TOKEN is set
-        if [ -n "$BUF_TOKEN" ]; then
-          cd proto && buf push
-        fi
+        echo "Checking for breaking changes against main branch..."
+        cd proto && buf breaking --against '.git#branch=main'

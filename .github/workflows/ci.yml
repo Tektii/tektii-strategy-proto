@@ -46,27 +46,6 @@ jobs:
         chmod +x buf
         sudo mv buf /usr/local/bin/
     
-    - name: Debug - Show current structure
-      run: |
-        echo "=== Current branch structure ==="
-        ls -la
-        echo "=== Proto directory contents ==="
-        find proto -name "*.proto" -type f | sort
-        echo "=== Git branches ==="
-        git branch -a
-        echo "=== Main branch structure ==="
-        git checkout main
-        ls -la
-        if [ -d "proto" ]; then
-          echo "=== Main branch proto directory ==="
-          find proto -name "*.proto" -type f | sort
-          echo "=== Main branch strategy.proto first 20 lines ==="
-          head -20 proto/strategy.proto || echo "No strategy.proto in main branch"
-        else
-          echo "No proto directory in main branch"
-        fi
-        git checkout -
-    
     - name: Check for breaking changes
       run: |
         echo "Checking for breaking changes against main branch..."

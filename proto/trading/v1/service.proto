@@ -2,39 +2,56 @@ syntax = "proto3";
 
 package trading.v1;
 
-import "trading/v1/market_data.proto";
-import "trading/v1/orders.proto";
+import "trading/v1/broker/handlers/cancel_order.proto";
+import "trading/v1/broker/handlers/close_position.proto";
+import "trading/v1/broker/handlers/get_historical_data.proto";
+import "trading/v1/broker/handlers/get_market_depth.proto";
+import "trading/v1/broker/handlers/get_risk_metrics.proto";
+import "trading/v1/broker/handlers/get_state.proto";
+import "trading/v1/broker/handlers/modify_order.proto";
+import "trading/v1/broker/handlers/modify_trade_protection.proto";
+import "trading/v1/broker/handlers/place_order.proto";
+import "trading/v1/broker/handlers/validate_order.proto";
+import "trading/v1/strategy/handlers/init.proto";
+import "trading/v1/strategy/handlers/process_event.proto";
+import "trading/v1/strategy/handlers/shutdown.proto";
 
-option go_package = "github.com/Tektii/tektii-strategy-proto/gen/go/trading/v1;tradingv1";
-option java_multiple_files = true;
-option java_package = "com.tektii.trading.v1";
 option optimize_for = SPEED;
 
 // TektiiStrategy is implemented by trading strategies and called by provider adapters.
 // It handles event processing and lifecycle management.
-service TektiiStrategy {
+service TektiiStrategyService {
   // Event Processing - strategies handle internally, no actions returned
-  rpc ProcessEvent(TektiiEvent) returns (ProcessEventResponse);
+  rpc ProcessEvent(trading.v1.strategy.handlers.ProcessEventRequest) returns (trading.v1.strategy.handlers.ProcessEventResponse);
 
   // Lifecycle Management
-  rpc Initialize(InitRequest) returns (InitResponse);
-  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
+  rpc Initialize(trading.v1.strategy.handlers.InitializeRequest) returns (trading.v1.strategy.handlers.InitializeResponse);
+  // Gracefully shut down the strategy
+  rpc Shutdown(trading.v1.strategy.handlers.ShutdownRequest) returns (trading.v1.strategy.handlers.ShutdownResponse);
 }
 
 // TektiiBroker is implemented by provider adapters (backtest engine, brokers).
 // Strategies call these methods to query state and manage orders.
-service TektiiBroker {
+service TektiiBrokerService {
   // Query Methods - pull-based data access
-  rpc GetState(StateRequest) returns (StateResponse);
-  rpc GetHistoricalData(HistoricalDataRequest) returns (HistoricalDataResponse);
-  rpc GetMarketDepth(MarketDepthRequest) returns (MarketDepthResponse);
-  rpc GetRiskMetrics(RiskMetricsRequest) returns (RiskMetricsResponse);
+  rpc GetState(trading.v1.broker.handlers.GetStateRequest) returns (trading.v1.broker.handlers.GetStateResponse);
+  // Retrieve historical market data
+  rpc GetHistoricalData(trading.v1.broker.handlers.GetHistoricalDataRequest) returns (trading.v1.broker.handlers.GetHistoricalDataResponse);
+  // Get current order book depth
+  rpc GetMarketDepth(trading.v1.broker.handlers.GetMarketDepthRequest) returns (trading.v1.broker.handlers.GetMarketDepthResponse);
+  // Calculate portfolio risk metrics
+  rpc GetRiskMetrics(trading.v1.broker.handlers.GetRiskMetricsRequest) returns (trading.v1.broker.handlers.GetRiskMetricsResponse);
 
   // Order Management - synchronous with immediate feedback
-  rpc PlaceOrder(PlaceOrderRequest) returns (PlaceOrderResponse);
-  rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
-  rpc ModifyOrder(ModifyOrderRequest) returns (ModifyOrderResponse);
-  rpc ValidateOrder(ValidateOrderRequest) returns (ValidateOrderResponse);
-  rpc ClosePosition(ClosePositionRequest) returns (ClosePositionResponse);
-  rpc ModifyTradeProtection(ModifyTradeProtectionRequest) returns (ModifyTradeProtectionResponse);
+  rpc PlaceOrder(trading.v1.broker.handlers.PlaceOrderRequest) returns (trading.v1.broker.handlers.PlaceOrderResponse);
+  // Cancel an existing order
+  rpc CancelOrder(trading.v1.broker.handlers.CancelOrderRequest) returns (trading.v1.broker.handlers.CancelOrderResponse);
+  // Modify parameters of an existing order
+  rpc ModifyOrder(trading.v1.broker.handlers.ModifyOrderRequest) returns (trading.v1.broker.handlers.ModifyOrderResponse);
+  // Pre-validate an order without placing it
+  rpc ValidateOrder(trading.v1.broker.handlers.ValidateOrderRequest) returns (trading.v1.broker.handlers.ValidateOrderResponse);
+  // Close an existing position
+  rpc ClosePosition(trading.v1.broker.handlers.ClosePositionRequest) returns (trading.v1.broker.handlers.ClosePositionResponse);
+  // Manage stop loss and take profit orders
+  rpc ModifyTradeProtection(trading.v1.broker.handlers.ModifyTradeProtectionRequest) returns (trading.v1.broker.handlers.ModifyTradeProtectionResponse);
 }

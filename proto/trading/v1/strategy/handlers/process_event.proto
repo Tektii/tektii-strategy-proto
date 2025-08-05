@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package trading.v1.strategy.handlers;
+
+import "trading/v1/strategy/events/account_update.proto";
+import "trading/v1/strategy/events/candle_data.proto";
+import "trading/v1/strategy/events/option_greeks.proto";
+import "trading/v1/strategy/events/order_update.proto";
+import "trading/v1/strategy/events/position_update.proto";
+import "trading/v1/strategy/events/system_event.proto";
+import "trading/v1/strategy/events/tick_data.proto";
+import "trading/v1/strategy/events/trade_event.proto";
+
+// ProcessEventRequest is the base event wrapper containing all possible event types.
+// Only one event type will be set per message to ensure type safety.
+message ProcessEventRequest {
+  // Unique event ID for tracking
+  // Unique identifier for this event
+  string event_id = 1;
+
+  // Timestamp in microseconds since epoch
+  // Event timestamp in microseconds since epoch
+  int64 timestamp_us = 2;
+
+  // Event payload - exactly one field will be set per message
+  oneof event {
+    // Market data events (10-99)
+    // High-frequency quote and trade data
+    trading.v1.strategy.events.TickData tick_data = 10;
+    // Aggregated OHLCV data
+    trading.v1.strategy.events.CandleData candle_data = 11;
+    // Options pricing and risk metrics
+    trading.v1.strategy.events.OptionGreeks option_greeks = 12;
+
+    // Trading events (100-199)
+    // Order status changes
+    trading.v1.strategy.events.OrderUpdateEvent order_update = 100;
+    // Position changes
+    trading.v1.strategy.events.PositionUpdateEvent position_update = 101;
+    // Account balance changes
+    trading.v1.strategy.events.AccountUpdateEvent account_update = 102;
+    // Individual trade executions
+    trading.v1.strategy.events.TradeEvent trade = 103;
+
+    // System events (200-299)
+    // System-level notifications
+    trading.v1.strategy.events.SystemEvent system = 200;
+  }
+}
+
+// ProcessEventResponse acknowledges event processing.
+message ProcessEventResponse {
+  // Whether event was processed successfully
+  bool success = 1;
+  // Error message if processing failed
+  string error = 2;
+  // Optional metadata about event processing
+  map<string, string> metadata = 3;
+}

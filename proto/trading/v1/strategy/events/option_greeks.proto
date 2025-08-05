@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package trading.v1.strategy.events;
+
+// OptionGreeks represents options pricing and risk metrics.
+message OptionGreeks {
+  // Option symbol identifier
+  string symbol = 1;
+
+  // The Greeks
+  // Rate of change of option price with underlying price
+  double delta = 2;
+  // Rate of change of delta with underlying price
+  double gamma = 3;
+  // Time decay
+  double theta = 4;
+  // Sensitivity to volatility
+  double vega = 5;
+  // Sensitivity to interest rate
+  double rho = 6;
+
+  // Additional option metrics
+  // Implied volatility of the option
+  double implied_volatility = 7;
+  // Theoretical value based on pricing model
+  double theoretical_value = 8;
+
+  // Context data (important for Greeks interpretation)
+  // Current price of the underlying asset
+  double underlying_price = 9;
+  // Risk-free interest rate used in calculations
+  double interest_rate = 10;
+  // Number of days until option expiration
+  int32 days_to_expiry = 11;
+}

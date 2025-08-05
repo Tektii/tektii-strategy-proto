@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package trading.v1.broker.handlers;
+
+import "trading/v1/broker/common.proto";
+
+// GetStateRequest queries current strategy state.
+message GetStateRequest {
+  // Empty = all symbols
+  repeated string symbols = 1;
+  // Whether to include position data
+  bool include_positions = 2;
+  // Whether to include open orders
+  bool include_orders = 3;
+  // Whether to include account state
+  bool include_account = 4;
+}
+
+// GetStateResponse returns current state snapshot.
+message GetStateResponse {
+  // Current positions indexed by symbol
+  map<string, Position> positions = 1;
+  // Open orders indexed by order ID
+  map<string, Order> orders = 2;
+  // Account state information
+  AccountState account = 3;
+  // Timestamp of state snapshot in microseconds since epoch
+  int64 timestamp_us = 4;
+}
+
+// AccountState represents the current state of a trading account.
+message AccountState {
+  // Available cash
+  double cash_balance = 1;
+  // Total portfolio value
+  double portfolio_value = 2;
+  // Available buying power
+  double buying_power = 3;
+  // Initial margin requirement
+  double initial_margin = 4;
+  // Maintenance margin requirement
+  double maintenance_margin = 5;
+  // Currently used margin
+  double margin_used = 6;
+  // Today's P&L
+  double daily_pnl = 7;
+  // Total P&L
+  double total_pnl = 8;
+}

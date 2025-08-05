@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package trading.v1.strategy.events;
+
+// SystemEvent represents system-level notifications.
+message SystemEvent {
+  // Type of system event
+  SystemEventType type = 1;
+  // Human-readable message describing the event
+  string message = 2;
+  // Additional event context and details
+  map<string, string> details = 3;
+}
+
+// SystemEventType categorizes system-level events.
+enum SystemEventType {
+  // Default unspecified event type
+  SYSTEM_EVENT_TYPE_UNSPECIFIED = 0;
+  // Connection established
+  SYSTEM_EVENT_TYPE_CONNECTED = 1;
+  // Connection lost
+  SYSTEM_EVENT_TYPE_DISCONNECTED = 2;
+  // System error occurred
+  SYSTEM_EVENT_TYPE_ERROR = 3;
+  // Warning condition
+  SYSTEM_EVENT_TYPE_WARNING = 4;
+  // Informational message
+  SYSTEM_EVENT_TYPE_INFO = 5;
+}

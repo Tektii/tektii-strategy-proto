@@ -1,0 +1,202 @@
+syntax = "proto3";
+
+package trading.v1.broker;
+
+// Candle represents OHLCV data for a time period.
+message Candle {
+  // Start of candle period in microseconds since epoch
+  int64 timestamp_us = 1;
+  // Opening price for the period
+  double open = 2;
+  // Highest price during the period
+  double high = 3;
+  // Lowest price during the period
+  double low = 4;
+  // Closing price for the period
+  double close = 5;
+  // Total volume traded during the period
+  int64 volume = 6;
+  // Volume-weighted average price for the period
+  double vwap = 7;
+}
+
+// Position represents a current position in a trading account.
+message Position {
+  // Trading symbol identifier
+  string symbol = 1;
+  // Position size (positive for long, negative for short)
+  double quantity = 2;
+  // Average entry price for the position
+  double avg_price = 3;
+  // Current market value of the position
+  double market_value = 4;
+  // Unrealized profit/loss on the position
+  double unrealized_pnl = 5;
+  // Realized profit/loss from closed portions
+  double realized_pnl = 6;
+  // Current market price of the symbol
+  double current_price = 7;
+}
+
+// RejectCode provides specific reasons for order rejections.
+enum RejectCode {
+  // Default unspecified rejection reason
+  REJECT_CODE_UNSPECIFIED = 0;
+  // Not enough margin or buying power for the order
+  REJECT_CODE_INSUFFICIENT_MARGIN = 1;
+  // Position size limit would be exceeded
+  REJECT_CODE_POSITION_LIMIT = 2;
+  // Symbol not found or not tradeable
+  REJECT_CODE_INVALID_SYMBOL = 3;
+  // Market is closed for trading
+  REJECT_CODE_MARKET_CLOSED = 4;
+  // Quantity is invalid (e.g., zero, negative, or below minimum)
+  REJECT_CODE_INVALID_QUANTITY = 5;
+  // Price is invalid (e.g., negative or zero for limit orders)
+  REJECT_CODE_INVALID_PRICE = 6;
+  // API rate limit exceeded
+  REJECT_CODE_RATE_LIMIT = 7;
+  // Order with same client ID already exists
+  REJECT_CODE_DUPLICATE_ORDER = 8;
+  // Account has trading restrictions
+  REJECT_CODE_ACCOUNT_RESTRICTED = 9;
+  // Order ID not found for modification or cancellation
+  REJECT_CODE_ORDER_NOT_FOUND = 10;
+  // Order is in a state that cannot be modified
+  REJECT_CODE_ORDER_NOT_MODIFIABLE = 11;
+  // Pre-trade risk check failed
+  REJECT_CODE_RISK_CHECK_FAILED = 12;
+}
+
+// RiskCheckResult contains pre-trade risk analysis results.
+message RiskCheckResult {
+  // Margin required for this order
+  double margin_required = 1;
+  // Current available margin in account
+  double margin_available = 2;
+  // Buying power that would be used by this order
+  double buying_power_used = 3;
+  // Buying power remaining after this order
+  double buying_power_remaining = 4;
+
+  // Position limits
+  // Maximum allowed position size
+  double position_limit = 5;
+  // Current position size before this order
+  double current_position = 6;
+  // Expected position size after this order
+  double resulting_position = 7;
+
+  // Risk metrics
+  // Portfolio Value at Risk before this trade
+  double portfolio_var_before = 8;
+  // Portfolio Value at Risk after this trade
+  double portfolio_var_after = 9;
+  // Position concentration risk metric (0-1)
+  double concentration_risk = 10;
+
+  // Additional warnings that don't block the order
+  map<string, string> warnings = 11;
+}
+
+// StopOrder configuration for stop market orders.
+message StopOrder {
+  // Price at which to trigger a market order
+  double stop_price = 1;
+}
+
+// StopLimitOrder configuration for stop limit orders.
+message StopLimitOrder {
+  // Price at which to trigger the limit order
+  double stop_price = 1;
+  // Limit price for the triggered order
+  double limit_price = 2;
+}
+
+// Order represents a trading order.
+message Order {
+  // Unique order identifier
+  string order_id = 1;
+  // Trading symbol for this order
+  string symbol = 2;
+  // Current status of the order
+  OrderStatus status = 3;
+  // Buy or sell side
+  OrderSide side = 4;
+  // Type of order (market, limit, etc.)
+  OrderType order_type = 5;
+  // Total order quantity
+  double quantity = 6;
+  // Quantity already filled
+  double filled_quantity = 7;
+  // Limit price for limit orders
+  double limit_price = 8;
+  // Stop trigger price for stop orders
+  double stop_price = 9;
+  // Order creation time in microseconds since epoch
+  int64 created_at_us = 10;
+  // Purpose of the order (open, close, stop loss, etc.)
+  OrderIntent order_intent = 11;
+  // Parent trade ID for protective orders
+  string parent_trade_id = 12;
+}
+
+// OrderIntent indicates the purpose of an order for tracking and risk management.
+enum OrderIntent {
+  // Default unspecified order intent
+  ORDER_INTENT_UNSPECIFIED = 0;
+  // Opening a new position
+  ORDER_INTENT_OPEN = 1;
+  // Closing an existing position
+  ORDER_INTENT_CLOSE = 2;
+  // Protective stop loss order
+  ORDER_INTENT_STOP_LOSS = 3;
+  // Take profit order
+  ORDER_INTENT_TAKE_PROFIT = 4;
+}
+
+// OrderSide indicates whether an order is to buy or sell.
+enum OrderSide {
+  // Default unspecified order side
+  ORDER_SIDE_UNSPECIFIED = 0;
+  // Buy order (long position)
+  ORDER_SIDE_BUY = 1;
+  // Sell order (short position)
+  ORDER_SIDE_SELL = 2;
+}
+
+// OrderStatus represents the current state of an order in its lifecycle.
+enum OrderStatus {
+  // Default unspecified order status
+  ORDER_STATUS_UNSPECIFIED = 0;
+  // Order has been received but not yet submitted to market
+  ORDER_STATUS_PENDING = 1;
+  // Order has been sent to the exchange
+  ORDER_STATUS_SUBMITTED = 2;
+  // Order has been accepted by the exchange
+  ORDER_STATUS_ACCEPTED = 3;
+  // Order has been partially filled
+  ORDER_STATUS_PARTIAL = 4;
+  // Order has been completely filled
+  ORDER_STATUS_FILLED = 5;
+  // Order has been canceled
+  ORDER_STATUS_CANCELED = 6;
+  // Order has been rejected by broker/exchange
+  ORDER_STATUS_REJECTED = 7;
+  // Order has expired (e.g., DAY orders at market close)
+  ORDER_STATUS_EXPIRED = 8;
+}
+
+// OrderType specifies how an order should be executed.
+enum OrderType {
+  // Default unspecified order type
+  ORDER_TYPE_UNSPECIFIED = 0;
+  // Execute immediately at current market price
+  ORDER_TYPE_MARKET = 1;
+  // Execute at specified price or better
+  ORDER_TYPE_LIMIT = 2;
+  // Stop market order triggered at stop price
+  ORDER_TYPE_STOP = 3;
+  // Stop order that becomes limit order when triggered
+  ORDER_TYPE_STOP_LIMIT = 4;
+}

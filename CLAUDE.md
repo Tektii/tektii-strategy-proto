@@ -58,11 +58,11 @@ The repository defines a single gRPC service `TektiiStrategy` with these RPC met
    - `GetMarketDepth` - Order book/market depth
    - `GetRiskMetrics` - Portfolio risk calculations
 
-### Event Types (via TektiiEvent)
+### Event Types (via ProcessEventRequest)
 
 Market Data:
 - `TickData` - High-frequency quotes and trades
-- `BarData` - OHLCV aggregated data
+- `CandleData` - OHLCV aggregated data
 - `OptionGreeks` - Options pricing data
 
 Trading Events:
@@ -93,7 +93,7 @@ This proto file serves as the contract between three key components:
 2. **Provider Adapters** (Platform Side)
    - Implement the client side of this protocol
    - Translate generic orders/actions to provider-specific API calls
-   - Handle provider-specific event formats and convert to TektiiEvent
+   - Handle provider-specific event formats and convert to ProcessEventRequest
 
 3. **Tektii Engine** (Backtesting)
    - Acts as a provider adapter for historical simulation

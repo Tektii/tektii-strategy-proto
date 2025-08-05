@@ -30,7 +30,7 @@ message CancelOrderResponse {
   // Status of order before cancellation
   OrderStatus previous_status = 6;
   // Quantity filled before cancellation
-  double filled_quantity = 7;
+  broker.PreciseDecimal filled_quantity = 7;
 
   // Server timestamp of cancellation
   int64 timestamp_us = 8;

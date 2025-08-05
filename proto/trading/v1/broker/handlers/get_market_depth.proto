@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package trading.v1.broker.handlers;
 
+import "trading/v1/broker/common.proto";
+
 // GetMarketDepthRequest requests order book data.
 message GetMarketDepthRequest {
   // Trading symbol identifier
@@ -25,9 +27,9 @@ message GetMarketDepthResponse {
 // PriceLevel represents a level in the order book.
 message PriceLevel {
   // Price level
-  double price = 1;
+  broker.PreciseDecimal price = 1;
   // Total quantity available at this price level
-  double size = 2;
+  broker.PreciseDecimal size = 2;
   // Number of orders at this level
   int32 order_count = 3;
 }

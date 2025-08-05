@@ -11,11 +11,11 @@ message ModifyOrderRequest {
   string order_id = 1;
 
   // New order quantity
-  double quantity = 2;
+  broker.PreciseDecimal quantity = 2;
   // New limit price for limit orders
-  double limit_price = 3;
+  broker.PreciseDecimal limit_price = 3;
   // New stop price for stop orders
-  double stop_price = 4;
+  broker.PreciseDecimal stop_price = 4;
 
   // Client-provided ID for request tracking
   string request_id = 5;

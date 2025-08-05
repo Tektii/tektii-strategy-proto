@@ -9,13 +9,13 @@ message ClosePositionRequest {
   // Symbol of the position to close
   string symbol = 1;
   // Quantity to close (0 = close entire position)
-  double quantity = 2;
+  broker.PreciseDecimal quantity = 2;
 
   // Order routing preferences
   // Order type for closing (default: MARKET)
   OrderType order_type = 3;
   // Limit price for LIMIT order type
-  double limit_price = 4;
+  broker.PreciseDecimal limit_price = 4;
 
   // Client-provided ID for request tracking
   string request_id = 5;
@@ -34,11 +34,11 @@ message ClosePositionResponse {
 
   // Position details
   // Total position quantity before closing
-  double position_quantity = 4;
+  broker.PreciseDecimal position_quantity = 4;
   // Quantity being closed by this request
-  double closing_quantity = 5;
+  broker.PreciseDecimal closing_quantity = 5;
   // Quantity remaining after this request
-  double remaining_quantity = 6;
+  broker.PreciseDecimal remaining_quantity = 6;
 
   // Human-readable rejection reason if not accepted
   string reject_reason = 7;

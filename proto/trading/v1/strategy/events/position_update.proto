@@ -2,28 +2,30 @@ syntax = "proto3";
 
 package trading.v1.strategy.events;
 
+import "trading/v1/strategy/common.proto";
+
 // PositionUpdateEvent notifies of position changes.
 message PositionUpdateEvent {
   // Trading symbol identifier
   string symbol = 1;
   // Current position size (positive for long, negative for short)
-  double quantity = 2;
+  strategy.PreciseDecimal quantity = 2;
   // Average entry price
-  double avg_price = 3;
+  strategy.PreciseDecimal avg_price = 3;
 
   // P&L information
   // Unrealized profit/loss on the position
-  double unrealized_pnl = 4;
+  strategy.PreciseDecimal unrealized_pnl = 4;
   // Realized profit/loss from closed portions
-  double realized_pnl = 5;
+  strategy.PreciseDecimal realized_pnl = 5;
   // Current market value of the position
-  double market_value = 6;
+  strategy.PreciseDecimal market_value = 6;
 
   // Current market prices
   // Current market price of the symbol
-  double current_price = 7;
+  strategy.PreciseDecimal current_price = 7;
   // Current bid price
-  double bid = 8;
+  strategy.PreciseDecimal bid = 8;
   // Current ask price
-  double ask = 9;
+  strategy.PreciseDecimal ask = 9;
 }

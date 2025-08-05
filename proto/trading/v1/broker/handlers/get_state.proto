@@ -31,19 +31,19 @@ message GetStateResponse {
 // AccountState represents the current state of a trading account.
 message AccountState {
   // Available cash
-  double cash_balance = 1;
+  broker.PreciseDecimal cash_balance = 1;
   // Total portfolio value
-  double portfolio_value = 2;
+  broker.PreciseDecimal portfolio_value = 2;
   // Available buying power
-  double buying_power = 3;
+  broker.PreciseDecimal buying_power = 3;
   // Initial margin requirement
-  double initial_margin = 4;
+  broker.PreciseDecimal initial_margin = 4;
   // Maintenance margin requirement
-  double maintenance_margin = 5;
+  broker.PreciseDecimal maintenance_margin = 5;
   // Currently used margin
-  double margin_used = 6;
+  broker.PreciseDecimal margin_used = 6;
   // Today's P&L
-  double daily_pnl = 7;
+  broker.PreciseDecimal daily_pnl = 7;
   // Total P&L
-  double total_pnl = 8;
+  broker.PreciseDecimal total_pnl = 8;
 }

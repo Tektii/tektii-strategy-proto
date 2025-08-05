@@ -2,22 +2,32 @@ syntax = "proto3";
 
 package trading.v1.broker;
 
+// PreciseDecimal provides precision-safe decimal representation for financial calculations.
+// This is critical for crypto (8+ decimals) and forex pip calculations.
+message PreciseDecimal {
+  // Scaled integer value
+  int64 value = 1;
+  // Number of decimal places
+  int32 scale = 2;
+  // Example: 1.23456 = {value: 123456, scale: 5}
+}
+
 // Candle represents OHLCV data for a time period.
 message Candle {
   // Start of candle period in microseconds since epoch
   int64 timestamp_us = 1;
   // Opening price for the period
-  double open = 2;
+  PreciseDecimal open = 2;
   // Highest price during the period
-  double high = 3;
+  PreciseDecimal high = 3;
   // Lowest price during the period
-  double low = 4;
+  PreciseDecimal low = 4;
   // Closing price for the period
-  double close = 5;
+  PreciseDecimal close = 5;
   // Total volume traded during the period
   int64 volume = 6;
   // Volume-weighted average price for the period
-  double vwap = 7;
+  PreciseDecimal vwap = 7;
 }
 
 // Position represents a current position in a trading account.
@@ -25,17 +35,17 @@ message Position {
   // Trading symbol identifier
   string symbol = 1;
   // Position size (positive for long, negative for short)
-  double quantity = 2;
+  PreciseDecimal quantity = 2;
   // Average entry price for the position
-  double avg_price = 3;
+  PreciseDecimal avg_price = 3;
   // Current market value of the position
-  double market_value = 4;
+  PreciseDecimal market_value = 4;
   // Unrealized profit/loss on the position
-  double unrealized_pnl = 5;
+  PreciseDecimal unrealized_pnl = 5;
   // Realized profit/loss from closed portions
-  double realized_pnl = 6;
+  PreciseDecimal realized_pnl = 6;
   // Current market price of the symbol
-  double current_price = 7;
+  PreciseDecimal current_price = 7;
 }
 
 // RejectCode provides specific reasons for order rejections.
@@ -71,29 +81,29 @@ enum RejectCode {
 // RiskCheckResult contains pre-trade risk analysis results.
 message RiskCheckResult {
   // Margin required for this order
-  double margin_required = 1;
+  PreciseDecimal margin_required = 1;
   // Current available margin in account
-  double margin_available = 2;
+  PreciseDecimal margin_available = 2;
   // Buying power that would be used by this order
-  double buying_power_used = 3;
+  PreciseDecimal buying_power_used = 3;
   // Buying power remaining after this order
-  double buying_power_remaining = 4;
+  PreciseDecimal buying_power_remaining = 4;
 
   // Position limits
   // Maximum allowed position size
-  double position_limit = 5;
+  PreciseDecimal position_limit = 5;
   // Current position size before this order
-  double current_position = 6;
+  PreciseDecimal current_position = 6;
   // Expected position size after this order
-  double resulting_position = 7;
+  PreciseDecimal resulting_position = 7;
 
   // Risk metrics
   // Portfolio Value at Risk before this trade
-  double portfolio_var_before = 8;
+  PreciseDecimal portfolio_var_before = 8;
   // Portfolio Value at Risk after this trade
-  double portfolio_var_after = 9;
+  PreciseDecimal portfolio_var_after = 9;
   // Position concentration risk metric (0-1)
-  double concentration_risk = 10;
+  PreciseDecimal concentration_risk = 10;
 
   // Additional warnings that don't block the order
   map<string, string> warnings = 11;
@@ -102,15 +112,15 @@ message RiskCheckResult {
 // StopOrder configuration for stop market orders.
 message StopOrder {
   // Price at which to trigger a market order
-  double stop_price = 1;
+  PreciseDecimal stop_price = 1;
 }
 
 // StopLimitOrder configuration for stop limit orders.
 message StopLimitOrder {
   // Price at which to trigger the limit order
-  double stop_price = 1;
+  PreciseDecimal stop_price = 1;
   // Limit price for the triggered order
-  double limit_price = 2;
+  PreciseDecimal limit_price = 2;
 }
 
 // Order represents a trading order.
@@ -126,13 +136,13 @@ message Order {
   // Type of order (market, limit, etc.)
   OrderType order_type = 5;
   // Total order quantity
-  double quantity = 6;
+  PreciseDecimal quantity = 6;
   // Quantity already filled
-  double filled_quantity = 7;
+  PreciseDecimal filled_quantity = 7;
   // Limit price for limit orders
-  double limit_price = 8;
+  PreciseDecimal limit_price = 8;
   // Stop trigger price for stop orders
-  double stop_price = 9;
+  PreciseDecimal stop_price = 9;
   // Order creation time in microseconds since epoch
   int64 created_at_us = 10;
   // Purpose of the order (open, close, stop loss, etc.)

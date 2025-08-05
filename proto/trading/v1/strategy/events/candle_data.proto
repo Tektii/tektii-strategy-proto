@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package trading.v1.strategy.events;
 
+import "trading/v1/strategy/common.proto";
+
 // CandleData represents aggregated OHLCV data for a time period.
 message CandleData {
   // Trading symbol identifier
@@ -9,19 +11,19 @@ message CandleData {
 
   // OHLCV data
   // Opening price for the period
-  double open = 2;
+  strategy.PreciseDecimal open = 2;
   // Highest price during the period
-  double high = 3;
+  strategy.PreciseDecimal high = 3;
   // Lowest price during the period
-  double low = 4;
+  strategy.PreciseDecimal low = 4;
   // Closing price for the period
-  double close = 5;
+  strategy.PreciseDecimal close = 5;
   // Total volume traded during the period
   int64 volume = 6;
 
   // Additional aggregates
   // Volume-weighted average price
-  double vwap = 7;
+  strategy.PreciseDecimal vwap = 7;
   // Number of trades in this candle
   int64 trade_count = 8;
 

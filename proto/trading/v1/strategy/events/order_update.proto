@@ -19,19 +19,19 @@ message OrderUpdateEvent {
 
   // Quantities
   // Total order quantity
-  double quantity = 6;
+  strategy.PreciseDecimal quantity = 6;
   // Quantity already filled
-  double filled_quantity = 7;
+  strategy.PreciseDecimal filled_quantity = 7;
   // Quantity remaining to be filled
-  double remaining_quantity = 8;
+  strategy.PreciseDecimal remaining_quantity = 8;
 
   // Prices
   // Limit price for limit orders
-  double limit_price = 9;
+  strategy.PreciseDecimal limit_price = 9;
   // Stop price for stop orders
-  double stop_price = 10;
+  strategy.PreciseDecimal stop_price = 10;
   // Average price of fills so far
-  double avg_fill_price = 11;
+  strategy.PreciseDecimal avg_fill_price = 11;
 
   // Timestamps
   // Order creation time

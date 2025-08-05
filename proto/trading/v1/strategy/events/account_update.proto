@@ -2,33 +2,35 @@ syntax = "proto3";
 
 package trading.v1.strategy.events;
 
+import "trading/v1/strategy/common.proto";
+
 // AccountUpdateEvent notifies of account balance changes.
 message AccountUpdateEvent {
   // Balance information
   // Available cash in the account
-  double cash_balance = 1;
+  strategy.PreciseDecimal cash_balance = 1;
   // Total value of all positions and cash
-  double portfolio_value = 2;
+  strategy.PreciseDecimal portfolio_value = 2;
   // Available buying power for new positions
-  double buying_power = 3;
+  strategy.PreciseDecimal buying_power = 3;
 
   // Margin information
   // Initial margin requirement
-  double initial_margin = 4;
+  strategy.PreciseDecimal initial_margin = 4;
   // Maintenance margin requirement
-  double maintenance_margin = 5;
+  strategy.PreciseDecimal maintenance_margin = 5;
   // Currently used margin
-  double margin_used = 6;
+  strategy.PreciseDecimal margin_used = 6;
 
   // P&L information
   // Profit/loss for the current trading day
-  double daily_pnl = 7;
+  strategy.PreciseDecimal daily_pnl = 7;
   // Total cumulative profit/loss
-  double total_pnl = 8;
+  strategy.PreciseDecimal total_pnl = 8;
 
   // Risk metrics
   // Current leverage ratio
-  double leverage = 9;
+  strategy.PreciseDecimal leverage = 9;
   // Additional provider-specific risk metrics
-  map<string, double> risk_metrics = 10;
+  map<string, strategy.PreciseDecimal> risk_metrics = 10;
 }

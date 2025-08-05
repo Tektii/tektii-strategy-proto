@@ -29,7 +29,7 @@ message ModifyTradeProtectionRequest {
     // Type of take profit modification to apply
     oneof modification {
       // New take profit price
-      double limit_price = 1;
+      broker.PreciseDecimal limit_price = 1;
       // Remove take profit
       bool remove = 2;
     }
@@ -58,17 +58,17 @@ message ModifyTradeProtectionResponse {
 
   // Trade details
   // Quantity of the original trade
-  double trade_quantity = 6;
+  broker.PreciseDecimal trade_quantity = 6;
   // Entry price of the original trade
-  double trade_entry_price = 7;
+  broker.PreciseDecimal trade_entry_price = 7;
   // Current market price
-  double current_price = 8;
+  broker.PreciseDecimal current_price = 8;
 
   // Risk metrics
   // Based on stop loss
-  double max_loss = 9;
+  broker.PreciseDecimal max_loss = 9;
   // Based on take profit
-  double max_profit = 10;
+  broker.PreciseDecimal max_profit = 10;
 
   // Human-readable rejection reason if not accepted
   string reject_reason = 11;

@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package trading.v1.strategy.events;
 
+import "trading/v1/strategy/common.proto";
+
 // TickData represents high-frequency quote and trade data.
 message TickData {
   // Trading symbol identifier
@@ -9,9 +11,9 @@ message TickData {
 
   // Quote data
   // Best bid price
-  double bid = 2;
+  strategy.PreciseDecimal bid = 2;
   // Best ask price
-  double ask = 3;
+  strategy.PreciseDecimal ask = 3;
   // Size available at bid price
   int64 bid_size = 4;
   // Size available at ask price
@@ -19,13 +21,13 @@ message TickData {
 
   // Trade data
   // Last trade price
-  double last = 6;
+  strategy.PreciseDecimal last = 6;
   // Size of last trade
   int64 last_size = 7;
 
   // Derived values
   // (bid + ask) / 2
-  double mid = 8;
+  strategy.PreciseDecimal mid = 8;
 
   // Metadata
   // Exchange identifier

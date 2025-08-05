@@ -13,11 +13,11 @@ message ValidateOrderRequest {
   // Type of order (market, limit, etc.)
   OrderType order_type = 3;
   // Order quantity
-  double quantity = 4;
+  broker.PreciseDecimal quantity = 4;
   // Limit price for limit orders
-  double limit_price = 5;
+  broker.PreciseDecimal limit_price = 5;
   // Stop price for stop orders
-  double stop_price = 6;
+  broker.PreciseDecimal stop_price = 6;
 
   // Client-provided ID for request tracking
   string request_id = 7;
@@ -40,9 +40,9 @@ message ValidateOrderResponse {
 
   // Market impact estimates
   // Estimated price at which order would fill
-  double estimated_fill_price = 6;
+  broker.PreciseDecimal estimated_fill_price = 6;
   // Estimated market impact of the order
-  double estimated_market_impact = 7;
+  broker.PreciseDecimal estimated_market_impact = 7;
 }
 
 // ValidationError represents a validation error that prevents order placement.

@@ -13,13 +13,13 @@ message PlaceOrderRequest {
   // Order execution type (market, limit, etc.)
   OrderType order_type = 3;
   // Order quantity in base units
-  double quantity = 4;
+  broker.PreciseDecimal quantity = 4;
 
   // Prices (required based on order type)
   // Limit price for limit orders
-  double limit_price = 5;
+  broker.PreciseDecimal limit_price = 5;
   // Stop trigger price for stop orders
-  double stop_price = 6;
+  broker.PreciseDecimal stop_price = 6;
 
   // Order parameters
   TimeInForce time_in_force = 7;
@@ -63,9 +63,9 @@ message PlaceOrderResponse {
 
   // Estimates
   // Expected execution price based on current market
-  double estimated_fill_price = 7;
+  broker.PreciseDecimal estimated_fill_price = 7;
   // Estimated commission for this order
-  double estimated_commission = 8;
+  broker.PreciseDecimal estimated_commission = 8;
   // Response timestamp in microseconds since epoch
   int64 timestamp_us = 9;
 }
@@ -81,7 +81,7 @@ message ProtectiveOrdersOnFill {
   }
 
   // Take profit order (will create a LIMIT order)
-  double take_profit_price = 3;
+  broker.PreciseDecimal take_profit_price = 3;
 }
 
 // TimeInForce specifies how long an order remains active.

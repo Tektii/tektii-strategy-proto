@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package trading.v1.broker.handlers;
+
+import "trading/v1/broker/common.proto";
+
+// GetRiskMetricsRequest queries portfolio risk metrics.
+message GetRiskMetricsRequest {
+  // Empty = all positions
+  repeated string symbols = 1;
+  // e.g., 0.95 for 95% VaR
+  broker.PreciseDecimal confidence_level = 2;
+  // Historical period
+  int32 lookback_days = 3;
+}
+
+// GetRiskMetricsResponse returns risk calculations.
+message GetRiskMetricsResponse {
+  // Portfolio-level metrics
+  // Value at Risk
+  broker.PreciseDecimal portfolio_var = 1;
+  // Sharpe ratio
+  broker.PreciseDecimal portfolio_sharpe = 2;
+  // Beta vs market
+  broker.PreciseDecimal portfolio_beta = 3;
+  // Maximum drawdown
+  broker.PreciseDecimal max_drawdown = 4;
+
+  // Position-level metrics
+  map<string, PositionRisk> position_risks = 5; // Risk metrics by symbol
+
+  // Correlation matrix (symbol pairs as keys)
+  map<string, broker.PreciseDecimal> correlations = 6; // Pairwise correlations between positions
+
+  // Timestamp of risk calculation in microseconds since epoch
+  int64 timestamp_us = 7;
+}
+
+// PositionRisk contains risk metrics for a single position.
+message PositionRisk {
+  // Trading symbol identifier
+  string symbol = 1;
+  // Position Value at Risk
+  broker.PreciseDecimal position_var = 2;
+  // Beta relative to market
+  broker.PreciseDecimal beta = 3;
+  // Historical volatility
+  broker.PreciseDecimal volatility = 4;
+  // Dollar exposure
+  broker.PreciseDecimal exposure = 5;
+}

@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package trading.v1.broker.handlers;
+
+import "trading/v1/broker/common.proto";
+
+// ModifyOrderRequest changes order parameters (only set what needs to change).
+// This is used to update existing orders without canceling and creating new ones.
+message ModifyOrderRequest {
+  // ID of the order to modify
+  string order_id = 1;
+
+  // New order quantity
+  broker.PreciseDecimal quantity = 2;
+  // New limit price for limit orders
+  broker.PreciseDecimal limit_price = 3;
+  // New stop price for stop orders
+  broker.PreciseDecimal stop_price = 4;
+
+  // Client-provided ID for request tracking
+  string request_id = 5;
+}
+
+// ModifyOrderResponse confirms modification.
+message ModifyOrderResponse {
+  // Whether the modification was accepted
+  bool accepted = 1;
+  // ID of the order being modified
+  string order_id = 2;
+  // Echo of client request ID
+  string request_id = 3;
+
+  // Human-readable rejection reason if not accepted
+  string reject_reason = 4;
+  // Structured rejection code if not accepted
+  RejectCode reject_code = 5;
+
+  // Updated risk check results
+  RiskCheckResult risk_check = 6;
+
+  // Server timestamp of modification
+  int64 timestamp_us = 7;
+}

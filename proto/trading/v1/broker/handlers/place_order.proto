@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package trading.v1.broker.handlers;
+
+import "trading/v1/broker/common.proto";
+
+// PlaceOrderRequest submits a new order.
+message PlaceOrderRequest {
+  // Trading symbol to place order for
+  string symbol = 1;
+  // Buy or sell side
+  OrderSide side = 2;
+  // Order execution type (market, limit, etc.)
+  OrderType order_type = 3;
+  // Order quantity in base units
+  broker.PreciseDecimal quantity = 4;
+
+  // Prices (required based on order type)
+  // Limit price for limit orders
+  broker.PreciseDecimal limit_price = 5;
+  // Stop trigger price for stop orders
+  broker.PreciseDecimal stop_price = 6;
+
+  // Order parameters
+  TimeInForce time_in_force = 7;
+  // Client-assigned ID
+  string client_order_id = 8;
+  // Custom key-value pairs for order tracking
+  map<string, string> metadata = 9;
+
+  // Order intent and relationships
+  OrderIntent order_intent = 10;
+  // For protective orders
+  string parent_trade_id = 11;
+
+  // Automatic protective orders on fill
+  ProtectiveOrdersOnFill protective_orders_on_fill = 12;
+
+  // Request tracking
+  // Correlation ID
+  string request_id = 20;
+  // Dry run validation
+  bool validate_only = 21;
+}
+
+// PlaceOrderResponse provides immediate order feedback.
+message PlaceOrderResponse {
+  // Whether order was accepted by the broker
+  bool accepted = 1;
+  // Provider-assigned ID
+  string order_id = 2;
+  // Echo correlation ID
+  string request_id = 3;
+
+  // Rejection details
+  // Human-readable rejection reason
+  string reject_reason = 4;
+  // Structured rejection code
+  RejectCode reject_code = 5;
+
+  // Risk check results
+  RiskCheckResult risk_check = 6;
+
+  // Estimates
+  // Expected execution price based on current market
+  broker.PreciseDecimal estimated_fill_price = 7;
+  // Estimated commission for this order
+  broker.PreciseDecimal estimated_commission = 8;
+  // Response timestamp in microseconds since epoch
+  int64 timestamp_us = 9;
+}
+
+// ProtectiveOrdersOnFill defines protective orders to create when an order fills.
+message ProtectiveOrdersOnFill {
+  // Stop loss order configuration
+  oneof stop_loss {
+    // Stop market order configuration
+    StopOrder stop = 1;
+    // Stop limit order configuration
+    StopLimitOrder stop_limit = 2;
+  }
+
+  // Take profit order (will create a LIMIT order)
+  broker.PreciseDecimal take_profit_price = 3;
+}
+
+// TimeInForce specifies how long an order remains active.
+enum TimeInForce {
+  // Default unspecified time in force
+  TIME_IN_FORCE_UNSPECIFIED = 0;
+  // Valid for the current trading day
+  TIME_IN_FORCE_DAY = 1;
+  // Good Till Canceled
+  TIME_IN_FORCE_GTC = 2;
+  // Immediate Or Cancel
+  TIME_IN_FORCE_IOC = 3;
+  // Fill Or Kill
+  TIME_IN_FORCE_FOK = 4;
+}

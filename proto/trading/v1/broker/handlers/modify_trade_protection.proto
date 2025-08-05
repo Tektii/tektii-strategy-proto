@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package trading.v1.broker.handlers;
+
+import "trading/v1/broker/common.proto";
+
+// ModifyTradeProtectionRequest manages stop loss and take profit.
+message ModifyTradeProtectionRequest {
+  // ID of the trade to modify protection for
+  string trade_id = 1;
+
+  // Stop loss modifications
+  message StopLossModification {
+    // Type of stop loss modification to apply
+    oneof modification {
+      // Set/update stop market order
+      StopOrder stop = 1;
+      // Set/update stop limit order
+      StopLimitOrder stop_limit = 2;
+      // Remove stop loss
+      bool remove = 3;
+    }
+  }
+  // Stop loss configuration changes
+  StopLossModification stop_loss = 2;
+
+  // Take profit modifications
+  message TakeProfitModification {
+    // Type of take profit modification to apply
+    oneof modification {
+      // New take profit price
+      broker.PreciseDecimal limit_price = 1;
+      // Remove take profit
+      bool remove = 2;
+    }
+  }
+  // Take profit configuration changes
+  TakeProfitModification take_profit = 3;
+
+  // Client-provided ID for request tracking
+  string request_id = 4;
+}
+
+// ModifyTradeProtectionResponse confirms protection changes.
+message ModifyTradeProtectionResponse {
+  // Whether the modification was accepted
+  bool accepted = 1;
+  // ID of the trade being modified
+  string trade_id = 2;
+  // Echo of client request ID
+  string request_id = 3;
+
+  // Updated order IDs
+  // Order ID for stop loss (empty if removed)
+  string stop_loss_order_id = 4;
+  // Order ID for take profit (empty if removed)
+  string take_profit_order_id = 5;
+
+  // Trade details
+  // Quantity of the original trade
+  broker.PreciseDecimal trade_quantity = 6;
+  // Entry price of the original trade
+  broker.PreciseDecimal trade_entry_price = 7;
+  // Current market price
+  broker.PreciseDecimal current_price = 8;
+
+  // Risk metrics
+  // Based on stop loss
+  broker.PreciseDecimal max_loss = 9;
+  // Based on take profit
+  broker.PreciseDecimal max_profit = 10;
+
+  // Human-readable rejection reason if not accepted
+  string reject_reason = 11;
+  // Structured rejection code if not accepted
+  RejectCode reject_code = 12;
+
+  // Server timestamp of the response
+  int64 timestamp_us = 13;
+}

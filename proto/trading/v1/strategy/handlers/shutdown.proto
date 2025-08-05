@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package trading.v1.strategy.handlers;
+
+// ShutdownRequest initiates graceful shutdown.
+message ShutdownRequest {
+  // Reason for shutdown (human-readable)
+  string reason = 1;
+
+  // Force immediate shutdown without cleanup
+  bool force = 2;
+}
+
+// ShutdownResponse confirms shutdown completion.
+message ShutdownResponse {
+  // Whether shutdown was successful
+  bool success = 1;
+
+  // Success confirmation or error message
+  string message = 2;
+}

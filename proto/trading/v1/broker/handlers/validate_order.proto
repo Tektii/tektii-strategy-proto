@@ -21,6 +21,9 @@ message ValidateOrderRequest {
 
   // Client-provided ID for request tracking
   string request_id = 7;
+
+  // Provider/broker to validate order with (e.g., "alpaca", "interactive_brokers")
+  Provider provider = 8;
 }
 
 // ValidateOrderResponse returns validation results.

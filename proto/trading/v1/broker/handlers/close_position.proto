@@ -19,6 +19,9 @@ message ClosePositionRequest {
 
   // Client-provided ID for request tracking
   string request_id = 5;
+
+  // Provider/broker to close position with (e.g., "alpaca", "interactive_brokers")
+  Provider provider = 6;
 }
 
 // ClosePositionResponse confirms position closure.

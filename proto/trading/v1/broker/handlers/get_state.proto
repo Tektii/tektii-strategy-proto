@@ -14,6 +14,10 @@ message GetStateRequest {
   bool include_orders = 3;
   // Whether to include account state
   bool include_account = 4;
+  // Client-provided ID for request tracking
+  string request_id = 5;
+  // Provider/broker to get state from (e.g., "alpaca", "interactive_brokers")
+  Provider provider = 6;
 }
 
 // GetStateResponse returns current state snapshot.

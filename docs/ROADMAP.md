@@ -53,11 +53,11 @@ message PreciseDecimal {
 - Provider-specific precision limits
 - Conversion edge cases
 
-### Feature 0.2: Currency and Asset Type Foundation
+### Feature 0.2: Currency and Asset Type Foundation ✅ COMPLETED
 
 **Background**: Essential for multi-currency trading in forex and crypto pairs.
 
-**Implementation**:
+**Original Design**:
 ```proto
 enum AssetClass {
   ASSET_CLASS_UNSPECIFIED = 0;
@@ -76,11 +76,43 @@ message CurrencyPair {
 }
 ```
 
+**Actual Implementation**: ✅ PIVOTED TO PROVIDER-BASED APPROACH
+
+After review, we pivoted from complex currency pairs to a simpler provider-based approach:
+
+```proto
+// Added to all relevant messages
+Provider provider = N;  // "alpaca", "binance", "oanda", etc.
+
+// AssetClass enum still added for basic classification
+enum AssetClass {
+  ASSET_CLASS_UNSPECIFIED = 0;
+  ASSET_CLASS_CRYPTO = 1;
+  ASSET_CLASS_FOREX = 2;
+  ASSET_CLASS_EQUITY = 3;
+  ASSET_CLASS_OPTION = 4;
+  ASSET_CLASS_FUTURE = 5;
+  ASSET_CLASS_COMMODITY = 6;
+}
+```
+
 **Acceptance Criteria**:
-- [ ] AssetClass enum with reserved ranges
-- [ ] CurrencyPair message for forex/crypto
-- [ ] Symbol resolver documentation
-- [ ] Backward compatible with single symbol field
+- [x] AssetClass enum with reserved ranges ✅ Added to both common.proto files
+- [x] ~~CurrencyPair message for forex/crypto~~ ❌ Removed - too specific
+- [x] Symbol resolver documentation ✅ Created provider-based resolution docs
+- [x] Backward compatible with single symbol field ✅ Symbol field unchanged
+- [x] Provider identification support ✅ Added Provider enum to key messages
+
+**Key Decision**: Instead of modeling complex instrument types, we rely on:
+1. Provider ID + Symbol combination
+2. Tektii platform's instrument directory for mapping
+3. Simple, generic approach that works for all asset types
+
+**Implementation Notes**:
+- Added `Provider` enum field to: Position, Order, PlaceOrderRequest, ProcessEventRequest
+- Removed overly specific CurrencyPair and InstrumentIdentifier messages
+- Created comprehensive documentation on provider-based approach
+- Maintains full backward compatibility
 
 **Out of Scope**:
 - Complex instrument definitions
@@ -101,31 +133,34 @@ message CurrencyPair {
 
 **Background**: Forex uses standard pairs (EUR/USD), crypto uses varied formats (BTC/USDT, BTC-USD).
 
+**⚠️ UPDATED APPROACH**: Based on Feature 0.2 implementation, we now use provider-based identification instead of complex instrument definitions.
+
 **Implementation**:
 ```proto
-message InstrumentIdentifier {
-  string symbol = 1;           // Original field maintained
-  CurrencyPair pair = 2;       // Structured pair (new)
-  AssetClass asset_class = 3;  // Asset classification
-  string exchange = 4;         // Venue/exchange code
-  map<string, string> provider_mapping = 5; // Provider-specific symbols
+// SIMPLIFIED: Just use Provider enum + symbol
+// No need for InstrumentIdentifier or CurrencyPair
+message Order {
+  string symbol = 1;        // Provider's native symbol
+  Provider provider = 2;   // Which provider to use
+  // ... other fields
 }
 ```
 
 **Acceptance Criteria**:
-- [ ] Support both legacy symbol and new structured format
-- [ ] Provider mapping for symbol translation
+- [ ] ~~Support both legacy symbol and new structured format~~ → Use Provider enum instead
+- [ ] ~~Provider mapping for symbol translation~~ → Handled by Tektii platform
 - [ ] Documentation for symbol formats per provider
-- [ ] Validation for supported asset classes
+- [ ] ~~Validation for supported asset classes~~ → Platform validates provider+symbol
 
 **Out of Scope**:
 - Complex derivatives (options on futures)
 - Multi-leg instrument definitions
+- Symbol translation in protocol
 
 **Watch Out For**:
-- Provider-specific symbol formats
-- Crypto exchange naming variations
-- Base/quote convention differences
+- Provider-specific symbol formats (handled by platform)
+- Each provider must be used with its native symbols
+- No cross-provider symbol translation in strategy
 
 ### Feature 1.2: Crypto-Specific Order Types
 
@@ -206,34 +241,40 @@ message TradingSession {
 
 **Background**: Forex/crypto often use base currency position sizes.
 
+**⚠️ UPDATED APPROACH**: Based on Feature 0.2, currency-specific fields are handled by the platform, not the protocol.
+
 **Implementation**:
 ```proto
 message Position {
   // Existing fields maintained...
+  string symbol = 1;
+  PreciseDecimal quantity = 2;
+  // ... standard fields ...
   
-  // New fields for forex/crypto
-  PreciseDecimal base_quantity = 50;   // Size in base currency
-  PreciseDecimal quote_value = 51;     // Value in quote currency
-  string position_currency = 52;       // Currency of the position
-  PreciseDecimal conversion_rate = 53; // To account currency
+  // NEW: Provider identification
+  Provider provider = 8;  // Which provider holds this position
+  
+  // Currency conversions handled by platform based on provider+symbol
 }
 ```
 
 **Acceptance Criteria**:
-- [ ] Base/quote currency position tracking
-- [ ] Multi-currency P&L calculation
-- [ ] Conversion rate tracking
-- [ ] Backward compatibility with existing position fields
+- [ ] ~~Base/quote currency position tracking~~ → Platform handles via provider+symbol
+- [ ] Multi-currency P&L calculation → Platform responsibility
+- [ ] ~~Conversion rate tracking~~ → Platform maintains FX rates
+- [ ] Provider identification for positions
+- [ ] Backward compatibility maintained
 
 **Out of Scope**:
 - Complex currency hedging
 - Cross-margin positions
 - Portfolio-level currency exposure
+- Currency fields in protocol
 
 **Watch Out For**:
-- Real-time conversion rates
-- Position size precision
-- Partial fill handling
+- Provider must be tracked for each position
+- Platform handles all currency conversions
+- Symbol interpretation depends on provider
 
 ---
 
@@ -295,6 +336,7 @@ message MarketDepth {
   repeated PriceLevel asks = 3;
   int64 timestamp_us = 4;
   int32 depth = 5;  // Number of levels
+  Provider provider = 6;  // Source of market data
 }
 
 message PriceLevel {
@@ -454,12 +496,15 @@ message SettlementInfo {
 
 **Background**: Professional traders manage multiple accounts/subaccounts.
 
+**⚠️ PROVIDER CONSIDERATION**: Multi-account support must work across providers.
+
 **Implementation**:
 ```proto
 message AccountSelector {
   string primary_account_id = 1;
   repeated string sub_account_ids = 2;
   AccountAggregation aggregation = 3;
+  Provider provider = 4;  // Provider context for accounts
 }
 
 enum AccountAggregation {
@@ -582,20 +627,23 @@ enum NotificationTrigger {
 
 **Background**: Expand beyond forex/crypto to traditional equities.
 
+**⚠️ UPDATED APPROACH**: Provider-based approach eliminates need for asset-specific messages.
+
 **Implementation**:
 ```proto
-message EquityInstrument {
-  string ticker = 1;
-  string exchange = 2;
-  string currency = 3;
-  enum SecurityType {
-    SECURITY_TYPE_COMMON_STOCK = 0;
-    SECURITY_TYPE_PREFERRED = 1;
-    SECURITY_TYPE_ETF = 2;
-    SECURITY_TYPE_ADR = 3;
-  }
-  SecurityType security_type = 4;
+// NO NEED for EquityInstrument message
+// Just use Provider enum + symbol:
+// - provider: PROVIDER_ALPACA 
+// - symbol: "AAPL"
+// Platform knows this is Apple Inc. common stock
+
+// AssetClass enum already supports equities:
+enum AssetClass {
+  // ...
+  ASSET_CLASS_EQUITY = 3;
+  // ...
 }
+```
 
 message CorporateAction {
   enum ActionType {
@@ -629,15 +677,15 @@ message CorporateAction {
 
 **Background**: Natural progression for institutional traders.
 
+**⚠️ UPDATED APPROACH**: Provider handles contract specifications.
+
 **Implementation**:
 ```proto
-message FuturesContract {
-  string underlying = 1;
-  int64 expiry_date = 2;
-  PreciseDecimal contract_size = 3;
-  PreciseDecimal tick_size = 4;
-  string delivery_month = 5;  // "202312"
-}
+// NO NEED for FuturesContract message
+// Just use Provider enum + symbol:
+// - provider: PROVIDER_INTERACTIVE_BROKERS
+// - symbol: "ESZ23"  // E-mini S&P Dec 2023
+// Platform and provider handle contract specs
 
 message RolloverConfig {
   int32 days_before_expiry = 1;
@@ -674,6 +722,13 @@ message ProtocolVersion {
   int32 patch = 3;  // Bug fixes
 }
 ```
+
+### Provider-Based Architecture Benefits
+The provider-based approach implemented in Feature 0.2 simplifies the entire roadmap:
+1. **No complex instrument definitions needed** - Provider + symbol is sufficient
+2. **No asset-specific messages** - Generic messages work for all assets
+3. **Easier multi-provider support** - Natural part of the design
+4. **Simpler protocol evolution** - Fewer breaking changes needed
 
 ### Deprecation Process
 1. Add new field alongside old

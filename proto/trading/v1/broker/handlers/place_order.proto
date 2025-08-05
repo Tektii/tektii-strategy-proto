@@ -41,6 +41,9 @@ message PlaceOrderRequest {
   string request_id = 20;
   // Dry run validation
   bool validate_only = 21;
+
+  // Provider/broker to place order with (e.g., "alpaca", "interactive_brokers")
+  Provider provider = 22;
 }
 
 // PlaceOrderResponse provides immediate order feedback.

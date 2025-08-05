@@ -10,6 +10,8 @@ message CancelOrderRequest {
   string order_id = 1;
   // Client-provided ID for request tracking
   string request_id = 2;
+  // Provider/broker to cancel order with (e.g., "alpaca", "interactive_brokers")
+  Provider provider = 3;
 }
 
 // CancelOrderResponse confirms cancellation.

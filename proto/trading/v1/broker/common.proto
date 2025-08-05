@@ -210,3 +210,19 @@ enum OrderType {
   // Stop order that becomes limit order when triggered
   ORDER_TYPE_STOP_LIMIT = 4;
 }
+
+// Provider represents the trading platform or broker.
+enum Provider {
+  // Default unspecified provider
+  PROVIDER_UNSPECIFIED = 0;
+  // Tektii's backtesting environment
+  PROVIDER_BACKTESTING = 1;
+  // Alpaca trading platform
+  PROVIDER_ALPACA = 2;
+  // Interactive Brokers trading platform
+  PROVIDER_INTERACTIVE_BROKERS = 3;
+  // Binance cryptocurrency exchange
+  PROVIDER_BINANCE = 4;
+
+  // More coming soon...
+}

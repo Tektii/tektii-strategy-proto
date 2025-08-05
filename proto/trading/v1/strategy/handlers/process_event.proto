@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package trading.v1.strategy.handlers;
 
+import "trading/v1/strategy/common.proto";
 import "trading/v1/strategy/events/account_update.proto";
 import "trading/v1/strategy/events/candle_data.proto";
 import "trading/v1/strategy/events/option_greeks.proto";
@@ -21,6 +22,9 @@ message ProcessEventRequest {
   // Timestamp in microseconds since epoch
   // Event timestamp in microseconds since epoch
   int64 timestamp_us = 2;
+
+  // Provider/broker source of this event (e.g., "alpaca", "interactive_brokers")
+  Provider provider = 3;
 
   // Event payload - exactly one field will be set per message
   oneof event {

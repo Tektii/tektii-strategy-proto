@@ -20,6 +20,9 @@ message GetHistoricalDataRequest {
   // Maximum number of candles to return
   // Range: 1-10000
   int32 limit = 5;
+
+  // Provider/broker to get historical data from (e.g., "alpaca", "interactive_brokers")
+  Provider provider = 6;
 }
 
 // GetHistoricalDataResponse returns historical candle data.

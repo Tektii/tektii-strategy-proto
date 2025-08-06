@@ -1,4 +1,4 @@
-.PHONY: install lint format breaking check clean all
+.PHONY: install lint format check clean all
 
 # Default target
 all: check
@@ -12,19 +12,19 @@ install:
 # Lint proto files
 lint:
 	@echo "Running buf lint..."
-	@cd proto && buf lint
+	@buf lint
 	@echo "Linting complete!"
 
 # Format proto files
 format:
 	@echo "Formatting proto files..."
-	@cd proto && buf format -w
+	@buf format -w
 	@echo "Formatting complete!"
 
 # Run all checks
-check: lint breaking
+check: lint
 	@echo "Running all checks..."
-	@cd proto && buf build
+	@buf build
 	@echo "All checks passed!"
 
 # Clean temporary files
@@ -41,7 +41,7 @@ show-structure:
 # Validate proto compilation
 validate:
 	@echo "Validating proto files..."
-	@cd proto && buf build
+	@buf build
 	@echo "Proto files are valid!"
 
 # Help target

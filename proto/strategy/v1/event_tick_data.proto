@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package strategy.v1;
+
+import "strategy/v1/strategy_common.proto";
+
+// TickData represents real-time quote and trade information.
+message TickData {
+  // Trading symbol identifier
+  string symbol = 1;
+
+  // Quote data
+  // Best bid price
+  PreciseDecimal bid = 2;
+  // Best ask price
+  PreciseDecimal ask = 3;
+  // Size available at bid price
+  int64 bid_size = 4;
+  // Size available at ask price
+  int64 ask_size = 5;
+
+  // Trade data
+  // Last trade price
+  PreciseDecimal last = 6;
+  // Size of last trade
+  int64 last_size = 7;
+
+  // Derived values
+  // (bid + ask) / 2
+  PreciseDecimal mid = 8;
+
+  // Metadata
+  // Exchange identifier
+  string exchange = 9;
+
+  // TickType indicates the type of data in this tick.
+  enum TickType {
+    // Default unspecified tick type
+    TICK_TYPE_UNSPECIFIED = 0;
+    // Bid/ask update only
+    TICK_TYPE_QUOTE = 1;
+    // Trade execution only
+    TICK_TYPE_TRADE = 2;
+    // Both quote and trade data
+    TICK_TYPE_QUOTE_AND_TRADE = 3;
+  }
+  // Type of tick data
+  TickType tick_type = 10;
+}

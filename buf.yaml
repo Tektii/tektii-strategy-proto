@@ -1,0 +1,31 @@
+version: v2
+
+# Modules in this workspace
+modules:
+  - path: proto
+    name: buf.build/tektii/strategy
+    includes:
+      - proto/strategy
+  - path: proto
+    name: buf.build/tektii/broker
+    includes:
+      - proto/broker
+
+# External dependencies (if needed in the future)
+deps:
+  []
+  # Examples of common dependencies:
+  # - buf.build/googleapis/googleapis
+  # - buf.build/grpc/grpc
+  # - buf.build/bufbuild/protovalidate
+
+# Workspace-level lint configuration
+lint:
+  use:
+    - STANDARD
+    - COMMENTS
+
+# Workspace-level breaking change detection configuration
+breaking:
+  use:
+    - PACKAGE

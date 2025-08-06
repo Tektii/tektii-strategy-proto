@@ -1,0 +1,40 @@
+# Code generation configuration for Buf
+version: v2
+
+# Define code generation plugins
+plugins:
+  # Go code generation
+  - remote: buf.build/protocolbuffers/go
+    out: gen/go
+    opt:
+      - paths=source_relative
+  
+  # Go gRPC code generation
+  - remote: buf.build/grpc/go
+    out: gen/go
+    opt:
+      - paths=source_relative
+  
+  # Python code generation
+  - remote: buf.build/protocolbuffers/python
+    out: gen/python
+  
+  # Python gRPC code generation
+  - remote: buf.build/grpc/python
+    out: gen/python
+  
+  # TypeScript/JavaScript code generation (optional)
+  # - remote: buf.build/bufbuild/es
+  #   out: gen/ts
+  #   opt:
+  #     - target=ts
+  
+  # gRPC-Web code generation (optional)
+  # - remote: buf.build/grpc/web
+  #   out: gen/web
+  #   opt:
+  #     - mode=grpcweb
+
+# Specify which modules to generate code for
+inputs:
+  - directory: proto

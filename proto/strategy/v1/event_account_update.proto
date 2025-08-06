@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package strategy.v1;
+
+import "strategy/v1/strategy_common.proto";
+
+// AccountUpdateEvent provides real-time updates about account balance and margin status.
+message AccountUpdateEvent {
+  // Balance information
+  // Available cash in the account
+  PreciseDecimal cash_balance = 1;
+  // Total value of all positions and cash
+  PreciseDecimal portfolio_value = 2;
+  // Available buying power for new positions
+  PreciseDecimal buying_power = 3;
+
+  // Margin information
+  // Initial margin requirement
+  PreciseDecimal initial_margin = 4;
+  // Maintenance margin requirement
+  PreciseDecimal maintenance_margin = 5;
+  // Currently used margin
+  PreciseDecimal margin_used = 6;
+
+  // P&L information
+  // Profit/loss for the current trading day
+  PreciseDecimal daily_pnl = 7;
+  // Total cumulative profit/loss
+  PreciseDecimal total_pnl = 8;
+
+  // Risk metrics
+  // Current leverage ratio
+  PreciseDecimal leverage = 9;
+  // Additional broker-specific risk metrics
+  map<string, PreciseDecimal> risk_metrics = 10;
+}

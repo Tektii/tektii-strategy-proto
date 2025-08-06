@@ -22,7 +22,6 @@ dist/
 
 # Buf build artifacts
 .buf/
-buf.lock
 
 # IDE and editor files
 .idea/

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package strategy.v1;
+
+import "strategy/v1/strategy_common.proto";
+
+// TradeEvent provides details about executed trades.
+message TradeEvent {
+  // Unique trade identifier
+  string trade_id = 1;
+  // Order ID that generated this trade
+  string order_id = 2;
+  // Trading symbol identifier
+  string symbol = 3;
+
+  // Buy or sell side
+  OrderSide side = 4;
+  // Quantity executed in this trade
+  PreciseDecimal quantity = 5;
+  // Execution price
+  PreciseDecimal price = 6;
+
+  // Trade execution timestamp in microseconds since epoch
+  int64 timestamp_us = 7;
+
+  // Fees and commissions
+  // Commission charged for this trade
+  PreciseDecimal commission = 8;
+  // Additional fees charged for this trade
+  PreciseDecimal fees = 9;
+}

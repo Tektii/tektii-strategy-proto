@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package strategy.v1;
+
+import "strategy/v1/handler_init.proto";
+import "strategy/v1/handler_process_event.proto";
+import "strategy/v1/handler_shutdown.proto";
+
+option optimize_for = SPEED;
+
+// TektiiStrategy is implemented by trading strategies and called by broker adapters.
+// It handles event processing and lifecycle management.
+service TektiiStrategyService {
+  // Event Processing - strategies handle internally, no actions returned
+  rpc ProcessEvent(ProcessEventRequest) returns (ProcessEventResponse);
+
+  // Lifecycle Management
+  rpc Initialize(InitializeRequest) returns (InitializeResponse);
+  // Gracefully shut down the strategy
+  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
+}

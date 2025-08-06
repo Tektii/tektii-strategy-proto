@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package strategy.v1;
+
+import "strategy/v1/strategy_common.proto";
+
+// PositionUpdateEvent provides updates when positions change.
+message PositionUpdateEvent {
+  // Trading symbol identifier
+  string symbol = 1;
+  // Current position size (positive for long, negative for short)
+  PreciseDecimal quantity = 2;
+  // Average entry price
+  PreciseDecimal avg_price = 3;
+
+  // P&L information
+  // Unrealized profit/loss on the position
+  PreciseDecimal unrealized_pnl = 4;
+  // Realized profit/loss from closed portions
+  PreciseDecimal realized_pnl = 5;
+  // Current market value of the position
+  PreciseDecimal market_value = 6;
+
+  // Current market prices
+  // Current market price of the symbol
+  PreciseDecimal current_price = 7;
+  // Current bid price
+  PreciseDecimal bid = 8;
+  // Current ask price
+  PreciseDecimal ask = 9;
+}

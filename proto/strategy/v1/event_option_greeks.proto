@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package strategy.v1;
+
+import "strategy/v1/strategy_common.proto";
+
+// OptionGreeks contains option pricing sensitivities and risk metrics.
+message OptionGreeks {
+  // Option symbol identifier
+  string symbol = 1;
+
+  // The Greeks
+  // Rate of change of option price with underlying price
+  PreciseDecimal delta = 2;
+  // Rate of change of delta with underlying price
+  PreciseDecimal gamma = 3;
+  // Time decay
+  PreciseDecimal theta = 4;
+  // Sensitivity to volatility
+  PreciseDecimal vega = 5;
+  // Sensitivity to interest rate
+  PreciseDecimal rho = 6;
+
+  // Additional option metrics
+  // Implied volatility of the option
+  PreciseDecimal implied_volatility = 7;
+  // Theoretical value based on pricing model
+  PreciseDecimal theoretical_value = 8;
+
+  // Context data (important for Greeks interpretation)
+  // Current price of the underlying asset
+  PreciseDecimal underlying_price = 9;
+  // Risk-free interest rate used in calculations
+  PreciseDecimal interest_rate = 10;
+  // Number of days until option expiration
+  int32 days_to_expiry = 11;
+}

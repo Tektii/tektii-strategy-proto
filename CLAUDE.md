@@ -70,7 +70,7 @@ Trading Events:
 - `PositionUpdateEvent` - Position changes
 - `TradeEvent` - Executed trades
 - `AccountUpdateEvent` - Account balance updates
-- `SystemEvent` - System-level notifications
+- `SystemUpdate` - System-level notifications
 
 
 ### Order Management (Synchronous RPCs)

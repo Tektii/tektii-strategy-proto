@@ -46,9 +46,9 @@ message ProcessEventRequest {
     // Trade state updates
     TradeUpdateEvent trade_update = 103;
 
-    // System events (200-299)
+    // System updates (200-299)
     // System-level notifications
-    SystemEvent system = 200;
+    SystemUpdate system = 200;
   }
 }
 

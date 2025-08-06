@@ -12,12 +12,14 @@ message GetStateRequest {
   bool include_positions = 2;
   // Whether to include open orders
   bool include_orders = 3;
+  // Whether to include individual trades (for hedging accounts)
+  bool include_trades = 4;
   // Whether to include account state
-  bool include_account = 4;
+  bool include_account = 5;
   // Client-provided ID for request tracking
-  string request_id = 5;
+  string request_id = 6;
   // Broker to get state from (e.g., "alpaca", "interactive_brokers")
-  Broker broker = 6;
+  Broker broker = 7;
 }
 
 // GetStateResponse returns current state snapshot.
@@ -26,10 +28,12 @@ message GetStateResponse {
   map<string, Position> positions = 1;
   // Open orders indexed by order ID
   map<string, Order> orders = 2;
+  // Open trades indexed by trade ID (for hedging accounts)
+  map<string, Trade> trades = 3;
   // Account state information
-  AccountState account = 3;
+  AccountState account = 4;
   // Timestamp of state snapshot in microseconds since epoch
-  int64 timestamp_us = 4;
+  int64 timestamp_us = 5;
 }
 
 // AccountState represents the current state of a trading account.

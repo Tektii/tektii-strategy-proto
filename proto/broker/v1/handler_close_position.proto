@@ -4,12 +4,20 @@ package broker.v1;
 
 import "broker/v1/broker_common.proto";
 
-// ClosePositionRequest closes a position.
+// ClosePositionRequest closes a position or specific trades.
 message ClosePositionRequest {
   // Symbol of the position to close
   string symbol = 1;
   // Quantity to close (0 = close entire position)
   PreciseDecimal quantity = 2;
+
+  // Trade selection (for hedging accounts)
+  // Specific trade IDs to close (hedging accounts only)
+  // If empty, closes position using FIFO/LIFO based on broker default
+  repeated string trade_ids = 10;
+
+  // Trade closing strategy for hedging accounts when trade_ids is empty
+  TradeClosingStrategy trade_closing_strategy = 11;
 
   // Order routing preferences
   // Order type for closing (default: MARKET)
@@ -22,6 +30,20 @@ message ClosePositionRequest {
 
   // Broker to close position with (e.g., "alpaca", "interactive_brokers")
   Broker broker = 6;
+}
+
+// TradeClosingStrategy determines which trades to close in hedging accounts.
+enum TradeClosingStrategy {
+  // Default unspecified strategy (broker default)
+  TRADE_CLOSING_STRATEGY_UNSPECIFIED = 0;
+  // First In, First Out (close oldest trades first)
+  TRADE_CLOSING_STRATEGY_FIFO = 1;
+  // Last In, First Out (close newest trades first)
+  TRADE_CLOSING_STRATEGY_LIFO = 2;
+  // Close most profitable trades first
+  TRADE_CLOSING_STRATEGY_MOST_PROFITABLE = 3;
+  // Close least profitable trades first
+  TRADE_CLOSING_STRATEGY_LEAST_PROFITABLE = 4;
 }
 
 // ClosePositionResponse confirms position closure.
@@ -43,6 +65,10 @@ message ClosePositionResponse {
   // Quantity remaining after this request
   PreciseDecimal remaining_quantity = 6;
 
+  // Trade-level details (for hedging accounts)
+  // Details of specific trades being closed
+  repeated TradeCloseDetail closed_trades = 10;
+
   // Human-readable rejection reason if not accepted
   string reject_reason = 7;
   // Structured rejection code if not accepted
@@ -50,4 +76,18 @@ message ClosePositionResponse {
 
   // Server timestamp of the response
   int64 timestamp_us = 9;
+}
+
+// TradeCloseDetail provides information about a specific trade being closed.
+message TradeCloseDetail {
+  // Trade ID being closed
+  string trade_id = 1;
+  // Quantity of this trade being closed
+  PreciseDecimal quantity = 2;
+  // Entry price of the original trade
+  PreciseDecimal entry_price = 3;
+  // Expected closing price
+  PreciseDecimal expected_close_price = 4;
+  // Expected P&L for this trade closure
+  PreciseDecimal expected_pnl = 5;
 }

@@ -7,9 +7,9 @@ import "strategy/v1/event_candle_data.proto";
 import "strategy/v1/event_option_greeks.proto";
 import "strategy/v1/event_order_update.proto";
 import "strategy/v1/event_position_update.proto";
-import "strategy/v1/event_system.proto";
+import "strategy/v1/event_system_update.proto";
 import "strategy/v1/event_tick_data.proto";
-import "strategy/v1/event_trade.proto";
+import "strategy/v1/event_trade_update.proto";
 import "strategy/v1/strategy_common.proto";
 
 // ProcessEventRequest is the base event wrapper containing all possible event types.
@@ -43,8 +43,8 @@ message ProcessEventRequest {
     PositionUpdateEvent position_update = 101;
     // Account balance changes
     AccountUpdateEvent account_update = 102;
-    // Individual trade executions
-    TradeEvent trade = 103;
+    // Trade state updates
+    TradeUpdateEvent trade_update = 103;
 
     // System events (200-299)
     // System-level notifications

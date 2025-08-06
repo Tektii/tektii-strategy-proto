@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package strategy.v1;
+
+import "strategy/v1/strategy_common.proto";
+
+// TradeUpdateEvent provides updates about changes to existing trades.
+// This is critical for hedging accounts where individual trades are tracked separately.
+message TradeUpdateEvent {
+  // Unique trade identifier
+  string trade_id = 1;
+  // Trading symbol for this trade
+  string symbol = 2;
+
+  // Trade state information
+  // Buy or sell side
+  OrderSide side = 3;
+  // Original trade quantity
+  PreciseDecimal quantity = 4;
+  // Remaining open quantity after partial closes
+  PreciseDecimal remaining_quantity = 5;
+  // Trade execution price
+  PreciseDecimal entry_price = 6;
+  // Trade execution time in microseconds since epoch
+  int64 entry_timestamp_us = 7;
+
+  // Current P&L information
+  // Current unrealized P&L for this trade
+  PreciseDecimal unrealized_pnl = 8;
+  // Realized P&L from partial closes of this trade
+  PreciseDecimal realized_pnl = 9;
+  // Current market price of the symbol
+  PreciseDecimal current_price = 10;
+
+  // Protection orders attached to this specific trade
+  // Stop loss order ID if attached
+  string stop_loss_order_id = 11;
+  // Take profit order ID if attached
+  string take_profit_order_id = 12;
+
+  // Update reason
+  TradeUpdateReason update_reason = 13;
+
+  // Event timestamp in microseconds since epoch
+  int64 timestamp_us = 14;
+
+  // Broker-specific metadata
+  map<string, string> metadata = 15;
+}
+
+// TradeUpdateReason indicates why a trade update event was generated.
+enum TradeUpdateReason {
+  // Default unspecified update reason
+  TRADE_UPDATE_REASON_UNSPECIFIED = 0;
+  // Trade was partially closed
+  TRADE_UPDATE_REASON_PARTIAL_CLOSE = 1;
+  // Protection orders were added or modified
+  TRADE_UPDATE_REASON_PROTECTION_MODIFIED = 2;
+  // Trade was fully closed
+  TRADE_UPDATE_REASON_CLOSED = 3;
+  // Initial trade creation notification
+  TRADE_UPDATE_REASON_OPENED = 4;
+}

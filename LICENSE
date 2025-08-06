@@ -12,7 +12,7 @@ obtaining a copy of this software and associated documentation files (the
 "Software"), to use the Software SOLELY for the purpose of:
 
 1. Developing trading strategies that interface with the Tektii platform
-2. Creating provider adapters for use within the Tektii ecosystem
+2. Creating broker adapters for use within the Tektii ecosystem
 3. Integrating with Tektii's services as an authorized user or partner
 
 RESTRICTIONS:

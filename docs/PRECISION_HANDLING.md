@@ -79,7 +79,7 @@ def add_precise_decimals(a: PreciseDecimal, b: PreciseDecimal) -> PreciseDecimal
         return PreciseDecimal(value=a_aligned + b_aligned, scale=max_scale)
 ```
 
-## Provider-Specific Considerations
+## Broker-Specific Considerations
 
 ### Interactive Brokers
 - Forex: Use scale=5 for major pairs, scale=3 for JPY pairs

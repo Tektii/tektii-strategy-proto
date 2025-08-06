@@ -10,8 +10,8 @@ message GetMarketDepthRequest {
   string symbol = 1;
   // Number of price levels (default 10)
   int32 depth = 2;
-  // Provider/broker to get market depth from (e.g., "alpaca", "interactive_brokers")
-  Provider provider = 3;
+  // Broker to get market depth from (e.g., "alpaca", "interactive_brokers")
+  Broker broker = 3;
 }
 
 // GetMarketDepthResponse returns current order book.

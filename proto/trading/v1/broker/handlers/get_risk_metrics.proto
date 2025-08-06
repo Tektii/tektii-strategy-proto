@@ -12,8 +12,8 @@ message GetRiskMetricsRequest {
   broker.PreciseDecimal confidence_level = 2;
   // Historical period
   int32 lookback_days = 3;
-  // Provider/broker to get risk metrics from (e.g., "alpaca", "interactive_brokers")
-  Provider provider = 4;
+  // Broker to get risk metrics from (e.g., "alpaca", "interactive_brokers")
+  Broker broker = 4;
 }
 
 // GetRiskMetricsResponse returns risk calculations.

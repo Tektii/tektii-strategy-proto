@@ -31,6 +31,6 @@ message AccountUpdateEvent {
   // Risk metrics
   // Current leverage ratio
   strategy.PreciseDecimal leverage = 9;
-  // Additional provider-specific risk metrics
+  // Additional broker-specific risk metrics
   map<string, strategy.PreciseDecimal> risk_metrics = 10;
 }

@@ -20,8 +20,8 @@ message ModifyOrderRequest {
   // Client-provided ID for request tracking
   string request_id = 5;
 
-  // Provider/broker to modify order with (e.g., "alpaca", "interactive_brokers")
-  Provider provider = 6;
+  // Broker to modify order with (e.g., "alpaca", "interactive_brokers")
+  Broker broker = 6;
 }
 
 // ModifyOrderResponse confirms modification.

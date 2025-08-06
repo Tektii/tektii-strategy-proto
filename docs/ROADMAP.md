@@ -8,7 +8,7 @@ This roadmap outlines the implementation plan for the Tektii Strategy Protocol B
 
 1. **No Breaking Changes**: All additions must be backward compatible
 2. **Asset-First Design**: Start with forex/crypto, design for extensibility
-3. **Provider Compatibility**: Ensure each feature works with target brokers
+3. **Broker Compatibility**: Ensure each feature works with target brokers
 4. **Developer Experience**: Maintain clarity and simplicity
 5. **Production Readiness**: Each phase must be deployable
 
@@ -35,14 +35,14 @@ message PreciseDecimal {
 **Acceptance Criteria**:
 - [x] PreciseDecimal message defined in common.proto ✅ Added to both broker/common.proto and strategy/common.proto
 - [x] Documentation on precision handling ✅ Created comprehensive PRECISION_HANDLING.md in docs/
-- [x] Validation that scale doesn't exceed provider limits ✅ Documented scale limits per asset type
+- [x] Validation that scale doesn't exceed broker limits ✅ Documented scale limits per asset type
 - [x] Remove existing double fields ✅ Replaced 127 double fields across all proto files
 
 **Completion Notes**:
 - Implementation completed without backward compatibility concerns as requested
 - PreciseDecimal message added to both broker and strategy common.proto files
 - Successfully replaced all monetary double fields (prices, quantities, values, P&L, margins)
-- Created detailed precision handling guide with validation rules, implementation examples, and provider-specific considerations
+- Created detailed precision handling guide with validation rules, implementation examples, and broker-specific considerations
 - No double fields remain for monetary values in the codebase
 
 **Out of Scope**:
@@ -50,7 +50,7 @@ message PreciseDecimal {
 
 **Watch Out For**:
 - Different precision requirements per asset (forex: 5, crypto: 8+)
-- Provider-specific precision limits
+- Broker-specific precision limits
 - Conversion edge cases
 
 ### Feature 0.2: Currency and Asset Type Foundation ✅ COMPLETED
@@ -76,13 +76,13 @@ message CurrencyPair {
 }
 ```
 
-**Actual Implementation**: ✅ PIVOTED TO PROVIDER-BASED APPROACH
+**Actual Implementation**: ✅ PIVOTED TO BROKER-BASED APPROACH
 
-After review, we pivoted from complex currency pairs to a simpler provider-based approach:
+After review, we pivoted from complex currency pairs to a simpler broker-based approach:
 
 ```proto
 // Added to all relevant messages
-Provider provider = N;  // "alpaca", "binance", "oanda", etc.
+Broker broker = N;  // "alpaca", "binance", "oanda", etc.
 
 // AssetClass enum still added for basic classification
 enum AssetClass {
@@ -99,19 +99,19 @@ enum AssetClass {
 **Acceptance Criteria**:
 - [x] AssetClass enum with reserved ranges ✅ Added to both common.proto files
 - [x] ~~CurrencyPair message for forex/crypto~~ ❌ Removed - too specific
-- [x] Symbol resolver documentation ✅ Created provider-based resolution docs
+- [x] Symbol resolver documentation ✅ Created broker-based resolution docs
 - [x] Backward compatible with single symbol field ✅ Symbol field unchanged
-- [x] Provider identification support ✅ Added Provider enum to key messages
+- [x] Broker identification support ✅ Added Broker enum to key messages
 
 **Key Decision**: Instead of modeling complex instrument types, we rely on:
-1. Provider ID + Symbol combination
+1. Broker ID + Symbol combination
 2. Tektii platform's instrument directory for mapping
 3. Simple, generic approach that works for all asset types
 
 **Implementation Notes**:
-- Added `Provider` enum field to: Position, Order, PlaceOrderRequest, ProcessEventRequest
+- Added `Broker` enum field to: Position, Order, PlaceOrderRequest, ProcessEventRequest
 - Removed overly specific CurrencyPair and InstrumentIdentifier messages
-- Created comprehensive documentation on provider-based approach
+- Created comprehensive documentation on broker-based approach
 - Maintains full backward compatibility
 
 **Out of Scope**:
@@ -133,24 +133,24 @@ enum AssetClass {
 
 **Background**: Forex uses standard pairs (EUR/USD), crypto uses varied formats (BTC/USDT, BTC-USD).
 
-**⚠️ UPDATED APPROACH**: Based on Feature 0.2 implementation, we now use provider-based identification instead of complex instrument definitions.
+**⚠️ UPDATED APPROACH**: Based on Feature 0.2 implementation, we now use broker-based identification instead of complex instrument definitions.
 
 **Implementation**:
 ```proto
-// SIMPLIFIED: Just use Provider enum + symbol
+// SIMPLIFIED: Just use Broker enum + symbol
 // No need for InstrumentIdentifier or CurrencyPair
 message Order {
-  string symbol = 1;        // Provider's native symbol
-  Provider provider = 2;   // Which provider to use
+  string symbol = 1;        // Broker's native symbol
+  Broker broker = 2;   // Which broker to use
   // ... other fields
 }
 ```
 
 **Acceptance Criteria**:
-- [ ] ~~Support both legacy symbol and new structured format~~ → Use Provider enum instead
-- [ ] ~~Provider mapping for symbol translation~~ → Handled by Tektii platform
-- [ ] Documentation for symbol formats per provider
-- [ ] ~~Validation for supported asset classes~~ → Platform validates provider+symbol
+- [ ] ~~Support both legacy symbol and new structured format~~ → Use Broker enum instead
+- [ ] ~~Broker mapping for symbol translation~~ → Handled by Tektii platform
+- [ ] Documentation for symbol formats per broker
+- [ ] ~~Validation for supported asset classes~~ → Platform validates broker+symbol
 
 **Out of Scope**:
 - Complex derivatives (options on futures)
@@ -158,9 +158,9 @@ message Order {
 - Symbol translation in protocol
 
 **Watch Out For**:
-- Provider-specific symbol formats (handled by platform)
-- Each provider must be used with its native symbols
-- No cross-provider symbol translation in strategy
+- Broker-specific symbol formats (handled by platform)
+- Each broker must be used with its native symbols
+- No cross-broker symbol translation in strategy
 
 ### Feature 1.2: Crypto-Specific Order Types
 
@@ -251,18 +251,18 @@ message Position {
   PreciseDecimal quantity = 2;
   // ... standard fields ...
   
-  // NEW: Provider identification
-  Provider provider = 8;  // Which provider holds this position
+  // NEW: Broker identification
+  Broker broker = 8;  // Which broker holds this position
   
-  // Currency conversions handled by platform based on provider+symbol
+  // Currency conversions handled by platform based on broker+symbol
 }
 ```
 
 **Acceptance Criteria**:
-- [ ] ~~Base/quote currency position tracking~~ → Platform handles via provider+symbol
+- [ ] ~~Base/quote currency position tracking~~ → Platform handles via broker+symbol
 - [ ] Multi-currency P&L calculation → Platform responsibility
 - [ ] ~~Conversion rate tracking~~ → Platform maintains FX rates
-- [ ] Provider identification for positions
+- [ ] Broker identification for positions
 - [ ] Backward compatibility maintained
 
 **Out of Scope**:
@@ -272,9 +272,9 @@ message Position {
 - Currency fields in protocol
 
 **Watch Out For**:
-- Provider must be tracked for each position
+- Broker must be tracked for each position
 - Platform handles all currency conversions
-- Symbol interpretation depends on provider
+- Symbol interpretation depends on broker
 
 ---
 
@@ -312,7 +312,7 @@ message OCOConfig {
 - [ ] Trailing stop implementation
 - [ ] OCO order linking
 - [ ] Server-side trail calculation option
-- [ ] Validation for supported order types per provider
+- [ ] Validation for supported order types per broker
 
 **Out of Scope**:
 - Algorithmic orders (TWAP/VWAP)
@@ -320,7 +320,7 @@ message OCOConfig {
 - Complex bracket strategies
 
 **Watch Out For**:
-- Not all providers support all types
+- Not all brokers support all types
 - Trail calculation differences
 - OCO partial fill handling
 
@@ -336,7 +336,7 @@ message MarketDepth {
   repeated PriceLevel asks = 3;
   int64 timestamp_us = 4;
   int32 depth = 5;  // Number of levels
-  Provider provider = 6;  // Source of market data
+  Broker broker = 6;  // Source of market data
 }
 
 message PriceLevel {
@@ -496,7 +496,7 @@ message SettlementInfo {
 
 **Background**: Professional traders manage multiple accounts/subaccounts.
 
-**⚠️ PROVIDER CONSIDERATION**: Multi-account support must work across providers.
+**⚠️ BROKER CONSIDERATION**: Multi-account support must work across brokers.
 
 **Implementation**:
 ```proto
@@ -504,7 +504,7 @@ message AccountSelector {
   string primary_account_id = 1;
   repeated string sub_account_ids = 2;
   AccountAggregation aggregation = 3;
-  Provider provider = 4;  // Provider context for accounts
+  Broker broker = 4;  // Broker context for accounts
 }
 
 enum AccountAggregation {
@@ -527,7 +527,7 @@ enum AccountAggregation {
 
 **Watch Out For**:
 - Regulatory restrictions
-- Provider account limits
+- Broker account limits
 - Performance with many accounts
 
 ### Feature 4.2: Advanced Analytics
@@ -627,13 +627,13 @@ enum NotificationTrigger {
 
 **Background**: Expand beyond forex/crypto to traditional equities.
 
-**⚠️ UPDATED APPROACH**: Provider-based approach eliminates need for asset-specific messages.
+**⚠️ UPDATED APPROACH**: Broker-based approach eliminates need for asset-specific messages.
 
 **Implementation**:
 ```proto
 // NO NEED for EquityInstrument message
-// Just use Provider enum + symbol:
-// - provider: PROVIDER_ALPACA 
+// Just use Broker enum + symbol:
+// - broker: BROKER_ALPACA 
 // - symbol: "AAPL"
 // Platform knows this is Apple Inc. common stock
 
@@ -677,15 +677,15 @@ message CorporateAction {
 
 **Background**: Natural progression for institutional traders.
 
-**⚠️ UPDATED APPROACH**: Provider handles contract specifications.
+**⚠️ UPDATED APPROACH**: Broker handles contract specifications.
 
 **Implementation**:
 ```proto
 // NO NEED for FuturesContract message
-// Just use Provider enum + symbol:
-// - provider: PROVIDER_INTERACTIVE_BROKERS
+// Just use Broker enum + symbol:
+// - broker: BROKER_INTERACTIVE_BROKERS
 // - symbol: "ESZ23"  // E-mini S&P Dec 2023
-// Platform and provider handle contract specs
+// Platform and broker handle contract specs
 
 message RolloverConfig {
   int32 days_before_expiry = 1;
@@ -723,11 +723,11 @@ message ProtocolVersion {
 }
 ```
 
-### Provider-Based Architecture Benefits
-The provider-based approach implemented in Feature 0.2 simplifies the entire roadmap:
-1. **No complex instrument definitions needed** - Provider + symbol is sufficient
+### Broker-Based Architecture Benefits
+The broker-based approach implemented in Feature 0.2 simplifies the entire roadmap:
+1. **No complex instrument definitions needed** - Broker + symbol is sufficient
 2. **No asset-specific messages** - Generic messages work for all assets
-3. **Easier multi-provider support** - Natural part of the design
+3. **Easier multi-broker support** - Natural part of the design
 4. **Simpler protocol evolution** - Fewer breaking changes needed
 
 ### Deprecation Process
@@ -736,8 +736,8 @@ The provider-based approach implemented in Feature 0.2 simplifies the entire roa
 3. Mark old field deprecated
 4. Remove after 6 months
 
-### Provider Adapter Strategy
-- Feature flags per provider
+### Broker Adapter Strategy
+- Feature flags per broker
 - Capability discovery API
 - Graceful degradation
 
@@ -820,7 +820,7 @@ The provider-based approach implemented in Feature 0.2 simplifies the entire roa
 
 ### Technical Risks
 1. **Precision migration**: Data corruption during transition
-2. **Provider compatibility**: Feature gaps between providers
+2. **Broker compatibility**: Feature gaps between brokers
 3. **Performance degradation**: Complex risk checks slow orders
 4. **Version fragmentation**: Clients on old versions
 
@@ -832,7 +832,7 @@ The provider-based approach implemented in Feature 0.2 simplifies the entire roa
 
 ### Mitigation Strategies
 1. Extensive testing infrastructure
-2. Provider capability matrix
+2. Broker capability matrix
 3. Performance benchmarking
 4. Strong deprecation policy
 5. Progressive disclosure UI

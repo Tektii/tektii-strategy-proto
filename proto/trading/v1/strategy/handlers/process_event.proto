@@ -23,8 +23,8 @@ message ProcessEventRequest {
   // Event timestamp in microseconds since epoch
   int64 timestamp_us = 2;
 
-  // Provider/broker source of this event (e.g., "alpaca", "interactive_brokers")
-  Provider provider = 3;
+  // Broker source of this event (e.g., "alpaca", "interactive_brokers")
+  Broker broker = 3;
 
   // Event payload - exactly one field will be set per message
   oneof event {

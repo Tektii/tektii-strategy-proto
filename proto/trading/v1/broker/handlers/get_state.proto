@@ -16,8 +16,8 @@ message GetStateRequest {
   bool include_account = 4;
   // Client-provided ID for request tracking
   string request_id = 5;
-  // Provider/broker to get state from (e.g., "alpaca", "interactive_brokers")
-  Provider provider = 6;
+  // Broker to get state from (e.g., "alpaca", "interactive_brokers")
+  Broker broker = 6;
 }
 
 // GetStateResponse returns current state snapshot.

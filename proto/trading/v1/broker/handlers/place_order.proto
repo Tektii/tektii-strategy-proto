@@ -42,15 +42,15 @@ message PlaceOrderRequest {
   // Dry run validation
   bool validate_only = 21;
 
-  // Provider/broker to place order with (e.g., "alpaca", "interactive_brokers")
-  Provider provider = 22;
+  // Broker to place order with (e.g., "alpaca", "interactive_brokers")
+  Broker broker = 22;
 }
 
 // PlaceOrderResponse provides immediate order feedback.
 message PlaceOrderResponse {
   // Whether order was accepted by the broker
   bool accepted = 1;
-  // Provider-assigned ID
+  // Broker-assigned ID
   string order_id = 2;
   // Echo correlation ID
   string request_id = 3;

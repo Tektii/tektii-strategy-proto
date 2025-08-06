@@ -4,16 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is the **Protocol Buffer definition repository** that provides a **generic trading interface** for Tektii's platform. It defines a provider-agnostic gRPC service interface that enables trading strategies to work across multiple trading providers without modification.
+This is the **Protocol Buffer definition repository** that provides a **generic trading interface** for Tektii's platform. It defines a broker-agnostic gRPC service interface that enables trading strategies to work across multiple trading brokers without modification.
 
 ### Architecture Flow
 ```
-User Strategy → gRPC Server (implements this proto) → Provider Adapter → Specific Trading Provider API
+User Strategy → gRPC Server (implements this proto) → Broker Adapter → Specific Trading Broker API
 ```
 
 This abstraction layer allows:
-- **Strategies** to be written once and work with any provider
-- **Provider Adapters** to translate generic commands to provider-specific APIs
+- **Strategies** to be written once and work with any broker
+- **Broker Adapters** to translate generic commands to broker-specific APIs
 - **Consistent Interface** regardless of underlying broker/exchange
 
 ## Essential Commands
@@ -90,23 +90,23 @@ This proto file serves as the contract between three key components:
    - Receive events and return actions through this interface
    - Example: tektii-strategy-sdk-python provides base classes
 
-2. **Provider Adapters** (Platform Side)
+2. **Broker Adapters** (Platform Side)
    - Implement the client side of this protocol
-   - Translate generic orders/actions to provider-specific API calls
-   - Handle provider-specific event formats and convert to ProcessEventRequest
+   - Translate generic orders/actions to broker-specific API calls
+   - Handle broker-specific event formats and convert to ProcessEventRequest
 
 3. **Tektii Engine** (Backtesting)
-   - Acts as a provider adapter for historical simulation
+   - Acts as a broker adapter for historical simulation
    - Sends market events and processes strategy actions
 
 ### Implementation Flow
 
 ```
 1. Strategy implements TektiiStrategy service (gRPC server)
-2. Provider adapter connects as gRPC client
+2. Broker adapter connects as gRPC client
 3. Event flow:
-   - Provider sends market events → ProcessEvent → Strategy processes internally
-   - Strategy calls PlaceOrder/CancelOrder/etc → Provider processes synchronously → Returns result
+   - Broker sends market events → ProcessEvent → Strategy processes internally
+   - Strategy calls PlaceOrder/CancelOrder/etc → Broker processes synchronously → Returns result
 4. Benefits of hybrid approach:
    - Event-driven for market data (efficient, batched)
    - Synchronous for orders (immediate feedback, error handling)
@@ -116,7 +116,7 @@ This proto file serves as the contract between three key components:
    - Alpaca
    - Binance
    - Tektii Backtesting Engine
-   - Any future provider
+   - Any future broker
 ```
 
 ## Proto Design Conventions
@@ -136,14 +136,14 @@ When modifying the proto file:
 2. **Field Numbers**: Continue from the highest existing number in each message
 3. **Documentation**: Add clear comments for new fields/messages
 4. **Commit Messages**: Use conventional commit format (feat:, fix:, refactor:, etc.)
-5. **Provider Neutrality**: Ensure changes remain generic and don't favor specific providers
+5. **Broker Neutrality**: Ensure changes remain generic and don't favor specific brokers
 6. **Testing Impact**: Consider how changes affect:
    - Existing strategy implementations
-   - All provider adapters
+   - All broker adapters
    - The backtesting engine
 
 ### Design Principles
 
-- **Generic Over Specific**: Avoid provider-specific fields or concepts
-- **Extensible**: Use metadata maps for provider-specific data when needed
-- **Complete**: Ensure the interface supports common trading operations across all provider types
+- **Generic Over Specific**: Avoid broker-specific fields or concepts
+- **Extensible**: Use metadata maps for broker-specific data when needed
+- **Complete**: Ensure the interface supports common trading operations across all broker types

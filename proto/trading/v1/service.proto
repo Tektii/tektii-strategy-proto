@@ -18,7 +18,7 @@ import "trading/v1/strategy/handlers/shutdown.proto";
 
 option optimize_for = SPEED;
 
-// TektiiStrategy is implemented by trading strategies and called by provider adapters.
+// TektiiStrategy is implemented by trading strategies and called by broker adapters.
 // It handles event processing and lifecycle management.
 service TektiiStrategyService {
   // Event Processing - strategies handle internally, no actions returned
@@ -30,7 +30,7 @@ service TektiiStrategyService {
   rpc Shutdown(trading.v1.strategy.handlers.ShutdownRequest) returns (trading.v1.strategy.handlers.ShutdownResponse);
 }
 
-// TektiiBroker is implemented by provider adapters (backtest engine, brokers).
+// TektiiBroker is implemented by broker adapters (backtest engine, brokers).
 // Strategies call these methods to query state and manage orders.
 service TektiiBrokerService {
   // Query Methods - pull-based data access

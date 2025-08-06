@@ -40,8 +40,8 @@ message ModifyTradeProtectionRequest {
   // Client-provided ID for request tracking
   string request_id = 4;
 
-  // Provider/broker to modify trade protection with (e.g., "alpaca", "interactive_brokers")
-  Provider provider = 5;
+  // Broker to modify trade protection with (e.g., "alpaca", "interactive_brokers")
+  Broker broker = 5;
 }
 
 // ModifyTradeProtectionResponse confirms protection changes.

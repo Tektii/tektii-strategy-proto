@@ -1,7 +1,7 @@
 version: v2
 modules:
   - path: .
-    name: buf.build/tektii/strategy
+    name: buf.build/tektii/strategy-broker
 lint:
   use:
     - STANDARD

@@ -55,7 +55,7 @@ message ValidationError {
   // Human-readable error message
   string message = 2;
   // Structured error code
-  ValidationErrorCode code = 3;
+  ErrorCode code = 3;
 }
 
 // ValidationWarning represents a non-blocking validation warning.
@@ -66,22 +66,6 @@ message ValidationWarning {
   string message = 2;
   // Structured warning code
   ValidationWarningCode code = 3;
-}
-
-// ValidationErrorCode for pre-trade validation errors.
-enum ValidationErrorCode {
-  // Default unspecified error
-  VALIDATION_ERROR_CODE_UNSPECIFIED = 0;
-  // Symbol not found or not tradeable
-  VALIDATION_ERROR_CODE_INVALID_SYMBOL = 1;
-  // Quantity is zero, negative, or below minimum
-  VALIDATION_ERROR_CODE_INVALID_QUANTITY = 2;
-  // Price is negative, zero, or invalid for order type
-  VALIDATION_ERROR_CODE_INVALID_PRICE = 3;
-  // Required field is missing or empty
-  VALIDATION_ERROR_CODE_MISSING_REQUIRED_FIELD = 4;
-  // Fields have conflicting values
-  VALIDATION_ERROR_CODE_CONFLICTING_FIELDS = 5;
 }
 
 // ValidationWarningCode for non-blocking validation warnings.

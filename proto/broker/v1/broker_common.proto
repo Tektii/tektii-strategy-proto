@@ -85,34 +85,50 @@ message Trade {
   map<string, string> metadata = 14;
 }
 
-// RejectCode provides specific reasons for order rejections.
-enum RejectCode {
-  // Default unspecified rejection reason
-  REJECT_CODE_UNSPECIFIED = 0;
-  // Not enough margin or buying power for the order
-  REJECT_CODE_INSUFFICIENT_MARGIN = 1;
-  // Position size limit would be exceeded
-  REJECT_CODE_POSITION_LIMIT = 2;
+// ErrorCode provides specific reasons for validation failures and order rejections.
+// Used by both ValidateOrder (for pre-trade validation) and all order operations
+// (PlaceOrder, ModifyOrder, CancelOrder, etc.) for rejection reasons.
+enum ErrorCode {
+  // Default unspecified error
+  ERROR_CODE_UNSPECIFIED = 0;
+
+  // Input validation errors (1-20)
   // Symbol not found or not tradeable
-  REJECT_CODE_INVALID_SYMBOL = 3;
-  // Market is closed for trading
-  REJECT_CODE_MARKET_CLOSED = 4;
+  ERROR_CODE_INVALID_SYMBOL = 1;
   // Quantity is invalid (e.g., zero, negative, or below minimum)
-  REJECT_CODE_INVALID_QUANTITY = 5;
+  ERROR_CODE_INVALID_QUANTITY = 2;
   // Price is invalid (e.g., negative or zero for limit orders)
-  REJECT_CODE_INVALID_PRICE = 6;
-  // API rate limit exceeded
-  REJECT_CODE_RATE_LIMIT = 7;
-  // Order with same client ID already exists
-  REJECT_CODE_DUPLICATE_ORDER = 8;
+  ERROR_CODE_INVALID_PRICE = 3;
+  // Required field is missing or empty
+  ERROR_CODE_MISSING_REQUIRED_FIELD = 4;
+  // Fields have conflicting values
+  ERROR_CODE_CONFLICTING_FIELDS = 5;
+
+  // Account and margin errors (21-40)
+  // Not enough margin or buying power for the order
+  ERROR_CODE_INSUFFICIENT_MARGIN = 21;
+  // Position size limit would be exceeded
+  ERROR_CODE_POSITION_LIMIT = 22;
   // Account has trading restrictions
-  REJECT_CODE_ACCOUNT_RESTRICTED = 9;
+  ERROR_CODE_ACCOUNT_RESTRICTED = 23;
+
+  // Market state errors (41-60)
+  // Market is closed for trading
+  ERROR_CODE_MARKET_CLOSED = 41;
+
+  // Order state errors (61-80)
+  // Order with same client ID already exists
+  ERROR_CODE_DUPLICATE_ORDER = 61;
   // Order ID not found for modification or cancellation
-  REJECT_CODE_ORDER_NOT_FOUND = 10;
+  ERROR_CODE_ORDER_NOT_FOUND = 62;
   // Order is in a state that cannot be modified
-  REJECT_CODE_ORDER_NOT_MODIFIABLE = 11;
+  ERROR_CODE_ORDER_NOT_MODIFIABLE = 63;
+
+  // System errors (81-100)
+  // API rate limit exceeded
+  ERROR_CODE_RATE_LIMIT = 81;
   // Pre-trade risk check failed
-  REJECT_CODE_RISK_CHECK_FAILED = 12;
+  ERROR_CODE_RISK_CHECK_FAILED = 82;
 }
 
 // RiskCheckResult contains pre-trade risk analysis results.

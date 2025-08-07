@@ -71,8 +71,8 @@ message ClosePositionResponse {
 
   // Human-readable rejection reason if not accepted
   string reject_reason = 7;
-  // Structured rejection code if not accepted
-  RejectCode reject_code = 8;
+  // Structured error code if not accepted
+  ErrorCode error_code = 8;
 
   // Server timestamp of the response
   int64 timestamp_us = 9;

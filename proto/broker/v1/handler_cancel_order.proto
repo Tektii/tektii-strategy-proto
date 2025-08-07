@@ -25,8 +25,8 @@ message CancelOrderResponse {
 
   // Human-readable rejection reason if not accepted
   string reject_reason = 4;
-  // Structured rejection code if not accepted
-  RejectCode reject_code = 5;
+  // Structured error code if not accepted
+  ErrorCode error_code = 5;
 
   // State at cancellation
   // Status of order before cancellation

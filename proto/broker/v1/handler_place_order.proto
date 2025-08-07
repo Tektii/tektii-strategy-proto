@@ -58,8 +58,8 @@ message PlaceOrderResponse {
   // Rejection details
   // Human-readable rejection reason
   string reject_reason = 4;
-  // Structured rejection code
-  RejectCode reject_code = 5;
+  // Structured error code for rejection
+  ErrorCode error_code = 5;
 
   // Risk check results
   RiskCheckResult risk_check = 6;

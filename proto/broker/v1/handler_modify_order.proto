@@ -35,8 +35,8 @@ message ModifyOrderResponse {
 
   // Human-readable rejection reason if not accepted
   string reject_reason = 4;
-  // Structured rejection code if not accepted
-  RejectCode reject_code = 5;
+  // Structured error code if not accepted
+  ErrorCode error_code = 5;
 
   // Updated risk check results
   RiskCheckResult risk_check = 6;

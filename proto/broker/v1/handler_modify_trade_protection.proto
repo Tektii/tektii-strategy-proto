@@ -75,8 +75,8 @@ message ModifyTradeProtectionResponse {
 
   // Human-readable rejection reason if not accepted
   string reject_reason = 11;
-  // Structured rejection code if not accepted
-  RejectCode reject_code = 12;
+  // Structured error code if not accepted
+  ErrorCode error_code = 12;
 
   // Server timestamp of the response
   int64 timestamp_us = 13;

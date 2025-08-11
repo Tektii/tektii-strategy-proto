@@ -38,9 +38,6 @@ message ModifyOrderResponse {
   // Structured error code if not accepted
   ErrorCode error_code = 5;
 
-  // Updated risk check results
-  RiskCheckResult risk_check = 6;
-
   // Server timestamp of modification
-  int64 timestamp_us = 7;
+  int64 timestamp_us = 6;
 }

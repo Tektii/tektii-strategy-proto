@@ -131,37 +131,6 @@ enum ErrorCode {
   ERROR_CODE_RISK_CHECK_FAILED = 82;
 }
 
-// RiskCheckResult contains pre-trade risk analysis results.
-message RiskCheckResult {
-  // Margin required for this order
-  PreciseDecimal margin_required = 1;
-  // Current available margin in account
-  PreciseDecimal margin_available = 2;
-  // Buying power that would be used by this order
-  PreciseDecimal buying_power_used = 3;
-  // Buying power remaining after this order
-  PreciseDecimal buying_power_remaining = 4;
-
-  // Position limits
-  // Maximum allowed position size
-  PreciseDecimal position_limit = 5;
-  // Current position size before this order
-  PreciseDecimal current_position = 6;
-  // Expected position size after this order
-  PreciseDecimal resulting_position = 7;
-
-  // Risk metrics
-  // Portfolio Value at Risk before this trade
-  PreciseDecimal portfolio_var_before = 8;
-  // Portfolio Value at Risk after this trade
-  PreciseDecimal portfolio_var_after = 9;
-  // Position concentration risk metric (0-1)
-  PreciseDecimal concentration_risk = 10;
-
-  // Additional warnings that don't block the order
-  map<string, string> warnings = 11;
-}
-
 // StopOrder configuration for stop market orders.
 message StopOrder {
   // Price at which to trigger a market order

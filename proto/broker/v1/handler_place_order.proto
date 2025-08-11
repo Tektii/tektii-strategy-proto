@@ -61,16 +61,8 @@ message PlaceOrderResponse {
   // Structured error code for rejection
   ErrorCode error_code = 5;
 
-  // Risk check results
-  RiskCheckResult risk_check = 6;
-
-  // Estimates
-  // Expected execution price based on current market
-  PreciseDecimal estimated_fill_price = 7;
-  // Estimated commission for this order
-  PreciseDecimal estimated_commission = 8;
   // Response timestamp in microseconds since epoch
-  int64 timestamp_us = 9;
+  int64 timestamp_us = 6;
 }
 
 // ProtectiveOrdersOnFill defines protective orders to create when an order fills.

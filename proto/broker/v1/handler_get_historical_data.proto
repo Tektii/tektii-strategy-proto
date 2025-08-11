@@ -8,21 +8,17 @@ import "broker/v1/broker_common.proto";
 message GetHistoricalDataRequest {
   // Trading symbol identifier
   string symbol = 1;
-  // Start time in microseconds since epoch
-  int64 start_timestamp_us = 2;
-  // End time in microseconds since epoch
-  int64 end_timestamp_us = 3;
 
   // Candle size options
   // Options: "1min", "5min", "15min", "30min", "1hour", "4hour", "1day"
-  string candle_size = 4;
+  string candle_size = 2;
 
   // Maximum number of candles to return
   // Range: 1-10000
-  int32 limit = 5;
+  int32 limit = 3;
 
   // Broker to get historical data from (e.g., "alpaca", "interactive_brokers")
-  Broker broker = 6;
+  Broker broker = 4;
 }
 
 // GetHistoricalDataResponse returns historical candle data.

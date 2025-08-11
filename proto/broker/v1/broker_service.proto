@@ -6,12 +6,10 @@ import "broker/v1/handler_cancel_order.proto";
 import "broker/v1/handler_close_position.proto";
 import "broker/v1/handler_get_historical_data.proto";
 import "broker/v1/handler_get_market_depth.proto";
-import "broker/v1/handler_get_risk_metrics.proto";
 import "broker/v1/handler_get_state.proto";
 import "broker/v1/handler_modify_order.proto";
 import "broker/v1/handler_modify_trade_protection.proto";
 import "broker/v1/handler_place_order.proto";
-import "broker/v1/handler_validate_order.proto";
 
 option optimize_for = SPEED;
 
@@ -24,8 +22,6 @@ service TektiiBrokerService {
   rpc GetHistoricalData(GetHistoricalDataRequest) returns (GetHistoricalDataResponse);
   // Get current order book depth
   rpc GetMarketDepth(GetMarketDepthRequest) returns (GetMarketDepthResponse);
-  // Calculate portfolio risk metrics
-  rpc GetRiskMetrics(GetRiskMetricsRequest) returns (GetRiskMetricsResponse);
 
   // Order Management - synchronous with immediate feedback
   rpc PlaceOrder(PlaceOrderRequest) returns (PlaceOrderResponse);
@@ -33,8 +29,6 @@ service TektiiBrokerService {
   rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
   // Modify parameters of an existing order
   rpc ModifyOrder(ModifyOrderRequest) returns (ModifyOrderResponse);
-  // Pre-validate an order without placing it
-  rpc ValidateOrder(ValidateOrderRequest) returns (ValidateOrderResponse);
   // Close an existing position
   rpc ClosePosition(ClosePositionRequest) returns (ClosePositionResponse);
   // Manage stop loss and take profit orders

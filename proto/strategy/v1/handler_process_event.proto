@@ -6,9 +6,6 @@ import "strategy/v1/event_account_update.proto";
 import "strategy/v1/event_candle_data.proto";
 import "strategy/v1/event_option_greeks.proto";
 import "strategy/v1/event_order_update.proto";
-import "strategy/v1/event_position_update.proto";
-import "strategy/v1/event_system_update.proto";
-import "strategy/v1/event_tick_data.proto";
 import "strategy/v1/event_trade_update.proto";
 import "strategy/v1/strategy_common.proto";
 
@@ -29,26 +26,18 @@ message ProcessEventRequest {
   // Event payload - exactly one field will be set per message
   oneof event {
     // Market data events (10-99)
-    // High-frequency quote and trade data
-    TickData tick_data = 10;
     // Aggregated OHLCV data
-    CandleData candle_data = 11;
+    CandleData candle_data = 10;
     // Options pricing and risk metrics
-    OptionGreeks option_greeks = 12;
+    OptionGreeks option_greeks = 11;
 
     // Trading events (100-199)
     // Order status changes
     OrderUpdateEvent order_update = 100;
-    // Position changes
-    PositionUpdateEvent position_update = 101;
     // Account balance changes
-    AccountUpdateEvent account_update = 102;
+    AccountUpdateEvent account_update = 101;
     // Trade state updates
-    TradeUpdateEvent trade_update = 103;
-
-    // System updates (200-299)
-    // System-level notifications
-    SystemUpdate system = 200;
+    TradeUpdateEvent trade_update = 102;
   }
 }
 

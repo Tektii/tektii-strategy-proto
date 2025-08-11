@@ -34,9 +34,9 @@ message TradeUpdateEvent {
 
   // Protection orders attached to this specific trade
   // Stop loss order ID if attached
-  string stop_loss_order_id = 11;
+  optional string stop_loss_order_id = 11;
   // Take profit order ID if attached
-  string take_profit_order_id = 12;
+  optional string take_profit_order_id = 12;
 
   // Update reason
   TradeUpdateReason update_reason = 13;

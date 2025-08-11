@@ -50,8 +50,6 @@ message AccountState {
   PreciseDecimal maintenance_margin = 5;
   // Currently used margin
   PreciseDecimal margin_used = 6;
-  // Today's P&L
-  PreciseDecimal daily_pnl = 7;
   // Total P&L
-  PreciseDecimal total_pnl = 8;
+  PreciseDecimal total_pnl = 7;
 }
